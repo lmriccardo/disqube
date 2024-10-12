@@ -43,6 +43,7 @@ namespace CommonLib::Communication
              */
             Socket(const std::string& ip, const unsigned short port, const SocketType& type);
             Socket(const SocketType& type) : _type(type) {};
+            Socket(const Socket& other);
             ~Socket()
             {
                 closeSocket();
@@ -53,6 +54,7 @@ namespace CommonLib::Communication
             const std::string& getIpAddress() const;
             unsigned short getPortNumber() const;
             int getSocketFileDescriptor() const;
+            const struct sockaddr_in& getSource() const;
 
             static std::string addressNumberToString(unsigned int addr, const bool be);
             static std::string getHostnameIp(const std::string& hostname);
@@ -64,6 +66,8 @@ namespace CommonLib::Communication
         public:
             UdpSocket(const std::string& ip, const unsigned short port) \
                 : Socket(ip, port, SocketType::UDP) {};
+
+            UdpSocket(const UdpSocket& other) : Socket(other) {};
     };
 
     class TcpSocket : public Socket
@@ -75,11 +79,18 @@ namespace CommonLib::Communication
         public:
             TcpSocket(const std::string& ip, const unsigned short port) \
                 : Socket(ip, port, SocketType::TCP) {};
+            
+            TcpSocket(const TcpSocket& other) : Socket(other) 
+            {
+                _connected = other._connected;
+                _dst = other._dst;
+            }
 
             bool isConnected() const;
             void connectTo(const std::string& ip, const unsigned short port);
             std::string getDestinatioIp() const;
             unsigned short getDestinationPort() const;
+            const struct sockaddr_in& getDestination() const;
     };
 }
 

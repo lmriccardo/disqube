@@ -63,6 +63,15 @@ CommonLib::Communication::Socket::Socket(const std::string &ip, const unsigned s
     }
 }
 
+CommonLib::Communication::Socket::Socket(const Socket &other)
+{
+    _ip = other._ip;
+    _port = other._port;
+    _type = other._type;
+    _closed = other._closed;
+    _src = other._src;
+}
+
 void CommonLib::Communication::Socket::closeSocket()
 {
     shutdown(_fd, SHUT_RDWR);
@@ -88,6 +97,11 @@ unsigned short CommonLib::Communication::Socket::getPortNumber() const
 int CommonLib::Communication::Socket::getSocketFileDescriptor() const
 {
     return _fd;
+}
+
+const sockaddr_in &CommonLib::Communication::Socket::getSource() const
+{
+    return _src;
 }
 
 std::string CommonLib::Communication::Socket::addressNumberToString(unsigned int addr, const bool be)
@@ -160,4 +174,9 @@ std::string CommonLib::Communication::TcpSocket::getDestinatioIp() const
 unsigned short CommonLib::Communication::TcpSocket::getDestinationPort() const
 {
     return ntohs(_dst.sin_port);
+}
+
+const sockaddr_in &CommonLib::Communication::TcpSocket::getDestination() const
+{
+    return _dst;
 }
