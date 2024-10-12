@@ -1,0 +1,23 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+            - name: Install dependencies
+              run: sudo apt-get update && sudo apt-get install -y build-essential cmake
+            - name: Create Build Directory
+              run: mkdir build && cd build
+            - name: Configure CMake
+              run: cmake -DCMAKE_BUILD_TYPE=Debug ..
+            - name: Build the project
+              run: cmake --build .
+            - name: Run tests
+              run: ctest --output-on-failure

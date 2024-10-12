@@ -40,3 +40,8 @@ install(EXPORT distributedExport
 )
 
 add_subdirectory(test)
+
+enable_testing()
+add_test(NAME ByteBufferTest COMMAND bb_test)
+add_test(NAME MessageTest COMMAND message_test)
+add_test(NAME SocketTest COMMAND socket_test) 
