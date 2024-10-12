@@ -11,13 +11,24 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v2
+
             - name: Install dependencies
               run: sudo apt-get update && sudo apt-get install -y build-essential cmake
+
             - name: Create Build Directory
               run: mkdir build && cd build
+
             - name: Configure CMake
-              run: cmake -DCMAKE_BUILD_TYPE=Debug ..
+              run: |
+                cd build
+                cmake -DCMAKE_BUILD_TYPE=Debug ..
+
             - name: Build the project
-              run: cmake --build .
+              run: |
+                cd build
+                cmake --build .
+
             - name: Run tests
-              run: ctest --output-on-failure
+              run: |
+                cd build
+                ctest --output-on-failure
