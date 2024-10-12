@@ -1,11 +1,17 @@
 #include <iostream>
 #include <CommonLib/Communication/Socket.hpp>
+#include "Test.hpp"
 
-using namespace CommonLib::Communication;
+using Socket = CommonLib::Communication::Socket;
+using UdpSocket = CommonLib::Communication::UdpSocket;
+using TcpSocket = CommonLib::Communication::TcpSocket;
+using SocketType = CommonLib::Communication::SocketType;
+
+using namespace Test;
 
 void test_udp()
 {
-    std::cout << "[TEST 1/3] Udp Socket creation: ";
+    std::cout << "[TEST 1/4] Udp Socket creation: ";
 
     try
     {
@@ -22,7 +28,7 @@ void test_udp()
 
 void test_tcp()
 {
-    std::cout << "[TEST 2/3] Tcp Socket creation: ";
+    std::cout << "[TEST 2/4] Tcp Socket creation: ";
 
     try
     {
@@ -50,7 +56,7 @@ void test_tcp()
 
 void test_type_failure()
 {
-    std::cout << "[TEST 3/3] Socket Type Test: ";
+    std::cout << "[TEST 3/4] Socket Type Test: ";
 
     try
     {
@@ -60,11 +66,31 @@ void test_type_failure()
     }
     catch(const std::invalid_argument& e)
     {
-        std::cout << "Passed" << std::endl;
-        std::cerr << e.what() << '\n';
-        exit(EXIT_SUCCESS);
+        std::cout << "Passed -> ";
+        std::cerr << e.what() << std::endl;
     }
     
+}
+
+void test_copy_constructor()
+{
+    std::cout << "[TEST 4/4] Socket Copy constructor Test: ";
+    Socket s("127.0.0.1", 1234, SocketType::UDP);
+    Socket s_c(s);
+
+    assert_eq_str(s_c.getIpAddress().c_str(), "127.0.0.1", 9);
+    assert_eq<unsigned short>(s_c.getPortNumber(), 1234);
+    assert_eq<int>(s_c.getSocketFileDescriptor(), s.getSocketFileDescriptor());
+
+    struct sockaddr_in src = s_c.getSource();
+    struct sockaddr_in dst_addr;
+    inet_aton("127.0.0.1", &dst_addr.sin_addr);
+
+    assert_eq<unsigned short>(src.sin_port, htons(1234));
+    assert_eq<int>(src.sin_family, AF_INET);
+    assert_eq<in_addr_t>(src.sin_addr.s_addr, dst_addr.sin_addr.s_addr);
+
+    std::cout << "Passed" << std::endl;
 }
 
 int main()
@@ -72,6 +98,7 @@ int main()
     test_udp();
     test_tcp();
     test_type_failure();
+    test_copy_constructor();
 
     return 0;
 }
