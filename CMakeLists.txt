@@ -20,6 +20,10 @@ target_include_directories(distributed PUBLIC
 add_executable(Main distributed/main.cpp)
 target_link_libraries(Main PRIVATE distributed)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(REUSE_MODE=1)
+endif()
+
 install(TARGETS distributed
     EXPORT distributedExport
     DESTINATION lib

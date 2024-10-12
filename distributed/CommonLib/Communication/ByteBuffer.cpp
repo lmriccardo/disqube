@@ -12,7 +12,23 @@ CommonLib::Communication::ByteBuffer::ByteBuffer(const std::size_t capacity)
     _order = ByteOrder::BigEndian;
 }
 
-void CommonLib::Communication::ByteBuffer::setByteOrder(const ByteOrder& newOrder)
+CommonLib::Communication::ByteBuffer &CommonLib::Communication::ByteBuffer::operator=(const ByteBuffer &other)
+{
+    if (this != &other)
+    {
+        _capacity = other._capacity;
+        _position = other._position;
+        _order = other._order;
+                    
+        // Copy the vector content
+        _buffer.resize(other._buffer.size());
+        std::copy(other._buffer.begin(), other._buffer.end(), _buffer.begin());
+    }
+
+    return *this;
+}
+
+void CommonLib::Communication::ByteBuffer::setByteOrder(const ByteOrder &newOrder)
 {
     _order = newOrder;
 }
