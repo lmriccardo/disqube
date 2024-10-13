@@ -6,6 +6,7 @@
 #include <iostream>
 #include <mutex>
 #include <condition_variable>
+#include <memory>
 #include <queue>
 
 namespace CommonLib::Concurrency
@@ -22,7 +23,12 @@ namespace CommonLib::Concurrency
         
         public:
             Queue(const std::size_t capacity) : _capacity(capacity) {};
+            Queue(const Queue<T>& other) = delete;
             ~Queue() = default;
+
+            // The assign operator cannot be used since the mutex cannot be copied.
+            // This holds also for the two condition variables
+            Queue<T>& operator=(const Queue<T>& other) = delete;
 
             std::size_t getQueueCapacity() const;
             std::size_t getNofElements();
@@ -81,6 +87,8 @@ namespace CommonLib::Concurrency
         _full.notify_one();
         return std::move(element);
     }
+
+    template <typename T> using Queue_ptr = std::shared_ptr<Queue<T>>;
 }
 
 #endif

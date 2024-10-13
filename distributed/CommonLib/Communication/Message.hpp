@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <arpa/inet.h>
 #include <CommonLib/Communication/ByteBuffer.hpp>
 
 namespace CommonLib::Communication
@@ -57,6 +58,14 @@ namespace CommonLib::Communication
 
             virtual void encode() = 0;
             virtual void decode() = 0;
+    };
+
+    typedef std::shared_ptr<Message> Message_ptr;
+
+    struct ReceivedMessage
+    {
+        Message_ptr         m;    // The arrived message
+        struct sockaddr_in* _src; // The source address and port
     };
 }
 
