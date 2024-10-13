@@ -51,6 +51,18 @@
         "iomanip": "cpp",
         "sstream": "cpp",
         "cstring": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "ratio": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "charconv": "cpp",
+        "chrono": "cpp",
+        "format": "cpp",
+        "span": "cpp",
+        "variant": "cpp",
+        "shared_mutex": "cpp"
     }
 }
