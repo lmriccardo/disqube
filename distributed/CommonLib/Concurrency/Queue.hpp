@@ -25,11 +25,11 @@ namespace CommonLib::Concurrency
             ~Queue() = default;
 
             std::size_t getQueueCapacity() const;
-            std::size_t getNofElements() const;
-            bool isEmpty() const;
+            std::size_t getNofElements();
+            bool isEmpty();
 
             void push(const T& element);
-            T& pop();
+            T pop();
     };
     
     template <typename T>
@@ -39,7 +39,7 @@ namespace CommonLib::Concurrency
     }
 
     template <typename T>
-    inline std::size_t Queue<T>::getNofElements() const
+    inline std::size_t Queue<T>::getNofElements()
     {
         // Lock the access to the resources. This operations
         // must be synchronized since it is critical
@@ -49,7 +49,7 @@ namespace CommonLib::Concurrency
     }
 
     template <typename T>
-    inline bool Queue<T>::isEmpty() const
+    inline bool Queue<T>::isEmpty()
     {
         std::unique_lock<std::mutex> lock(_mutex);
         return _queue.empty();
@@ -66,11 +66,11 @@ namespace CommonLib::Concurrency
         _queue.push(element);
 
         // Notify the waiting thread
-        _full.notify_one();
+        _empty.notify_one();
     }
 
     template <typename T>
-    inline T &Queue<T>::pop()
+    inline T Queue<T>::pop()
     {
         std::unique_lock<std::mutex> lock(_mutex);
         _empty.wait(lock, [this](){ return !this->_queue.empty(); });
@@ -78,8 +78,8 @@ namespace CommonLib::Concurrency
         T element = _queue.front();
         _queue.pop();
 
-        _empty.notify_one();
-        return element;
+        _full.notify_one();
+        return std::move(element);
     }
 }
 
