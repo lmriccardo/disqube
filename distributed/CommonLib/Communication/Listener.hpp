@@ -13,7 +13,6 @@
 #define RECVBUFFSIZE 4096
 
 using Thread = CommonLib::Concurrency::Thread;
-template <typename T> using Queue_ptr = CommonLib::Concurrency::Queue_ptr<T>;
 
 namespace CommonLib::Communication
 {
@@ -21,8 +20,8 @@ namespace CommonLib::Communication
     class Listener : public Thread
     {
         protected:
-            Queue_ptr<T> _queue; // The queue of received messages
-            bool         _stop;  // Flag indicating whether to stop or not the listening thread
+            CommonLib::Concurrency::Queue_ptr<T> _queue; // The queue of received messages
+            bool _stop;  // Flag indicating whether to stop or not the listening thread
             
             virtual std::optional<T> receiveOne() = 0;
 
@@ -30,7 +29,7 @@ namespace CommonLib::Communication
             static std::optional<T> recvOne(Listener& cls) { return cls.receiveOne(); }
 
         public:
-            Listener(Queue_ptr<T> q) : _queue(q) {};
+            Listener(CommonLib::Concurrency::Queue_ptr<T> q) : Thread("Listener"), _queue(q), _stop(false) {};
             Listener(const std::size_t capacity);
 
             virtual void listen() = 0;
@@ -38,13 +37,14 @@ namespace CommonLib::Communication
 
             void run();
 
-            Queue_ptr<T> getQueue();
+            CommonLib::Concurrency::Queue_ptr<T> getQueue();
             T getElement();
     };
 
     template <typename T>
-    inline Listener<T>::Listener(const std::size_t capacity)
+    inline Listener<T>::Listener(const std::size_t capacity) : Thread("Listener")
     {
+        _stop = false;
         _queue = std::make_shared<CommonLib::Concurrency::Queue<T>>(capacity);
     }
 
@@ -55,7 +55,7 @@ namespace CommonLib::Communication
     }
 
     template <typename T>
-    inline Queue_ptr<T> Listener<T>::getQueue()
+    inline CommonLib::Concurrency::Queue_ptr<T> Listener<T>::getQueue()
     {
         return _queue;
     }
@@ -74,16 +74,22 @@ namespace CommonLib::Communication
 
             std::optional<T> receiveOne() override;
             virtual T handleArrivingMessages(
-                unsigned char* buff, const std::size_t nofBytes
+                unsigned char* buff, const std::size_t nofBytes,
                 struct sockaddr_in* src) = 0;
 
         public:
             UdpListener() = delete;
-            UdpListener(const std::string& ip, unsigned short port, Queue_ptr<T> q) \
-                : _socket(ip, port), Listener<T>(q) {};
+            UdpListener(const std::string& ip, unsigned short port, const std::size_t capacity) \
+                : Listener<T>(capacity), _socket(ip, port) {};
 
-            UdpListener(const UdpSocket& socket, Queue_ptr<T> q) \
-                : _socket(socket), Listener<T>(q) {};
+            UdpListener(const std::string& ip, unsigned short port, CommonLib::Concurrency::Queue_ptr<T> q) \
+                : Listener<T>(q), _socket(ip, port) {};
+
+            UdpListener(const UdpSocket& socket, CommonLib::Concurrency::Queue_ptr<T> q) \
+                : Listener<T>(q), _socket(socket) {};
+
+            UdpListener(const UdpSocket& socket, const std::size_t capacity) \
+                : Listener<T>(capacity), _socket(socket) {};
 
             ~UdpListener() = default;
 
@@ -99,9 +105,10 @@ namespace CommonLib::Communication
         int fd = _socket.getSocketFileDescriptor();
         struct sockaddr_in src;
         socklen_t srclen = sizeof(src);
+        ssize_t nofBytes;
 
         // If the reception has failed, we returns nothing
-        if (recvfrom(fd, buffer, sizeof(buffer), 0, (struct sockaddr*)&src, &srclen) < 0)
+        if ((nofBytes = recvfrom(fd, buffer, sizeof(buffer), 0, (struct sockaddr*)&src, &srclen)) < 0)
         {
             std::cout << "[UdpListener::receiveOne] Error when receiving data: ";
             std::cout << std::strerror(errno) << std::endl;
@@ -110,13 +117,13 @@ namespace CommonLib::Communication
 
         // Otherwise we need the user-defined handleArrivingMessages functions
         // should convert, in some way, the inputs into the type T
-        return handleArrivingMessages((unsigned char*)buffer, &src);
+        return handleArrivingMessages((unsigned char*)buffer, nofBytes, &src);
     }
 
     template <typename T>
     inline void UdpListener<T>::listen()
     {
-        while (!_stop)
+        while (!this->_stop)
         {
             // Receive one single message and get the result
             std::optional<T> result = receiveOne();
@@ -127,10 +134,10 @@ namespace CommonLib::Communication
             // Otherwise, before putting the element into the queue
             // we need to check whether it is necessarily to stop, 
             // maybe it is a stop message.
-            if (toBeStopped(*result)) break;
+            if (this->toBeStopped(*result)) break;
 
             // Otherwise, put the result into the queue
-            _queue->put(*result);
+            this->_queue->push(*result);
         }
     }
 }

@@ -35,6 +35,8 @@ namespace CommonLib::Communication
             void sendTo(
                 const std::string& ip, const unsigned short port, 
                 unsigned char* buff, const std::size_t n);
+
+            using Sender::sendTo;
     };
 
     class UdpSender : public Sender
@@ -54,6 +56,8 @@ namespace CommonLib::Communication
             void sendTo(
                 const std::string& ip, const unsigned short port, 
                 unsigned char* buff, const std::size_t n);
+
+            using Sender::sendTo;
     };
 }
 

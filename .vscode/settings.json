@@ -1,7 +1,5 @@
 {
     "files.associations": {
-        "*.tsv": "tsv",
-        "*.i": "swig",
         "*.h": "c",
         "array": "cpp",
         "atomic": "cpp",
@@ -51,18 +49,13 @@
         "iomanip": "cpp",
         "sstream": "cpp",
         "cstring": "cpp",
+        "chrono": "cpp",
+        "condition_variable": "cpp",
         "optional": "cpp",
         "ratio": "cpp",
+        "mutex": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp",
-        "thread": "cpp",
-        "condition_variable": "cpp",
-        "mutex": "cpp",
-        "charconv": "cpp",
-        "chrono": "cpp",
-        "format": "cpp",
-        "span": "cpp",
-        "variant": "cpp",
-        "shared_mutex": "cpp"
+        "thread": "cpp"
     }
 }
