@@ -7,7 +7,6 @@
 #include <type_traits>
 #include <CommonLib/Communication/Socket.hpp>
 #include <CommonLib/Communication/Message.hpp>
-#include <CommonLib/Communication/SimpleMessage.hpp>
 
 namespace CommonLib::Communication
 {

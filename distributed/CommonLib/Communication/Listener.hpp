@@ -23,7 +23,11 @@ namespace CommonLib::Communication
             CommonLib::Concurrency::Queue_ptr<T> _queue; // The queue of received messages
             bool _stop;  // Flag indicating whether to stop or not the listening thread
             
+            virtual void listenFrom() = 0;
             virtual std::optional<T> receiveOne() = 0;
+            virtual T handleArrivingMessages(
+                unsigned char* buff, const std::size_t nofBytes,
+                struct sockaddr_in* src) = 0;
 
             // Static method to receive just one single message
             static std::optional<T> recvOne(Listener& cls) { return cls.receiveOne(); }
@@ -32,7 +36,6 @@ namespace CommonLib::Communication
             Listener(CommonLib::Concurrency::Queue_ptr<T> q) : Thread("Listener"), _queue(q), _stop(false) {};
             Listener(const std::size_t capacity);
 
-            virtual void listen() = 0;
             virtual bool toBeStopped(const T& value) = 0;
 
             void run();
@@ -51,7 +54,7 @@ namespace CommonLib::Communication
     template <typename T>
     inline void Listener<T>::run()
     {
-        listen();
+        listenFrom();
     }
 
     template <typename T>
@@ -69,13 +72,13 @@ namespace CommonLib::Communication
     template <typename T>
     class UdpListener : public Listener<T>
     {
+        private:
+            void listenFrom();
+
         protected:
             UdpSocket _socket;
 
             std::optional<T> receiveOne() override;
-            virtual T handleArrivingMessages(
-                unsigned char* buff, const std::size_t nofBytes,
-                struct sockaddr_in* src) = 0;
 
         public:
             UdpListener() = delete;
@@ -93,7 +96,7 @@ namespace CommonLib::Communication
 
             ~UdpListener() = default;
 
-    	    void listen();
+            std::optional<T> recvOne();
     };
 
     template <typename T>
@@ -117,11 +120,17 @@ namespace CommonLib::Communication
 
         // Otherwise we need the user-defined handleArrivingMessages functions
         // should convert, in some way, the inputs into the type T
-        return handleArrivingMessages((unsigned char*)buffer, nofBytes, &src);
+        return this->handleArrivingMessages((unsigned char*)buffer, nofBytes, &src);
     }
 
     template <typename T>
-    inline void UdpListener<T>::listen()
+    inline std::optional<T> UdpListener<T>::recvOne()
+    {
+        return Listener<T>::recvOne(*this);
+    }
+
+    template <typename T>
+    inline void UdpListener<T>::listenFrom()
     {
         while (!this->_stop)
         {
@@ -140,6 +149,96 @@ namespace CommonLib::Communication
             this->_queue->push(*result);
         }
     }
+
+    // template <typename T>
+    // class TcpListener : public Listener<T>
+    // {
+    //     private:
+    //         void listenFrom();
+
+    //         TcpListener(const std::size_t n_accepts) : _nconn(n_accepts)
+    //         {
+    //             _connections.reserve(_nconn);
+    //             _srcsockets.reserve(_nconn);
+    //         }
+            
+    //     protected:
+    //         TcpSocket                       _socket;
+    //         std::size_t                     _nconn;       // Number of maximum incoming connections to accept
+    //         std::vector<struct sockaddr_in> _connections; // Source addresses of connecting clients
+    //         std::vector<int>                _srcsockets;  // Sockets FD of connecting clients
+    //         std::vector<std::thread>        _threads;
+
+    //         std::optional<T> receiveOne() override;
+
+    //     public:
+    //         TcpListener() = delete;
+    //         TcpListener(
+    //             const std::string& ip, unsigned short port, const std::size_t capacity, 
+    //             const std::size_t n_accepts) \
+    //                 : TcpListener<T>(n_accepts), Listener<T>(capacity), _socket(ip, port) {};
+
+    //         TcpListener(
+    //             const std::string& ip, unsigned short port, 
+    //             CommonLib::Concurrency::Queue_ptr<T> q, const std::size_t n_accepts) \
+    //                 : TcpListener<T>(n_accepts), Listener<T>(q), _socket(ip, port) {};
+
+    //         TcpListener(const TcpSocket& socket, const std::size_t capacity,
+    //             const std::size_t n_accepts) \
+    //                 : TcpListener<T>(n_accepts), Listener<T>(capacity), _socket(socket) {};
+
+    //         TcpListener(const TcpSocket& socket, CommonLib::Concurrency::Queue_ptr<T> q,
+    //             const std::size_t n_accepts) \
+    //                 : TcpListener<T>(n_accepts), Listener<T>(q), _socket(socket) {};
+
+    //         ~TcpListener() = default;
+
+    //         std::optional<T> recvOne();
+    // };
+
+    // template <typename T>
+    // inline std::optional<T> TcpListener<T>::receiveOne()
+    // {
+    //     return std::optional<T>();
+    // }
+
+    // template <typename T>
+    // inline std::optional<T> TcpListener<T>::recvOne()
+    // {
+    //     return Listener<T>::recvOne(*this);
+    // }
+
+    // template <typename T>
+    // inline void TcpListener<T>::listenFrom()
+    // {
+    //     // Put the TCP Listener listening from incoming connections
+    //     if (listen(_socket.getSocketFileDescriptor(), _nconn) < 0)
+    //     {
+    //         std::cerr << "[TcpListener::listenFrom] Failed listening: ";
+    //         std::cerr << std::strerror(errno) << std::endl;
+    //         throw std::runtime_error("[TcpListener::listenFrom] Failed listening");
+    //     }
+
+    //     int fd = _socket.getSocketFileDescriptor();
+
+    //     while (!this->_stop)
+    //     {
+    //         struct sockaddr_in client;
+    //         socklen_t addrlen = sizeof(client);
+    //         int client_socket;
+            
+    //         // Accept incoming connections and save the source informations
+    //         if ((client_socket = accept(fd, (struct sockaddr*)&client, &addrlen)) < 0)
+    //         {
+    //             std::cout << "[TcpListener::listenFrom] Failed Accepting: ";
+    //             std::cerr << std::strerror(errno) << std::endl;
+    //             continue;
+    //         }
+
+    //         _connections.push_back(client);
+    //         _srcsockets.push_back(client_socket);
+    //     }
+    // }
 }
 
 #endif

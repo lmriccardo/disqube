@@ -1,5 +1,5 @@
 #include <iostream>
-#include <CommonLib/Communication/SimpleMessage.hpp>
+#include <CommonLib/Communication/Message.hpp>
 
 using SimpleMessage = CommonLib::Communication::SimpleMessage;
 

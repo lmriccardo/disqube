@@ -1,7 +1,7 @@
 #include <iostream>
 #include <CommonLib/Communication/Sender.hpp>
 #include <CommonLib/Communication/Listener.hpp>
-#include <CommonLib/Communication/SimpleMessage.hpp>
+#include <CommonLib/Communication/Message.hpp>
 #include "Test.hpp"
 
 #define LOCALHOST "127.0.0.1"
