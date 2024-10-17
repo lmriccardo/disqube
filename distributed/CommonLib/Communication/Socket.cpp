@@ -70,6 +70,7 @@ CommonLib::Communication::Socket::Socket(const Socket &other)
     _type = other._type;
     _closed = other._closed;
     _src = other._src;
+    _fd = other._fd;
 }
 
 void CommonLib::Communication::Socket::closeSocket()

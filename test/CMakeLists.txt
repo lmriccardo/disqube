@@ -7,6 +7,7 @@ add_executable(socket_test ../test/socket.cpp)
 add_executable(thread_test ../test/thread.cpp)
 add_executable(queue_test ../test/queue.cpp)
 add_executable(comm_test ../test/comm.cpp)
+add_executable(prova ../test/receiver.cpp)
 
 # Linking executables to the distributed libraries
 target_link_libraries(bb_test PRIVATE distributed)
@@ -15,3 +16,4 @@ target_link_libraries(socket_test PRIVATE distributed)
 target_link_libraries(thread_test PRIVATE distributed)
 target_link_libraries(queue_test PRIVATE distributed)
 target_link_libraries(comm_test PRIVATE distributed)
+target_link_libraries(prova PRIVATE distributed)
