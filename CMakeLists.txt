@@ -22,6 +22,7 @@ target_link_libraries(Main PRIVATE distributed)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(REUSE_MODE=1)
+    add_compile_definitions(DEBUG_MODE=1)
 endif()
 
 install(TARGETS distributed

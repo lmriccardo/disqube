@@ -1,5 +1,7 @@
 {
     "files.associations": {
+        "*.tsv": "tsv",
+        "*.i": "swig",
         "*.h": "c",
         "array": "cpp",
         "atomic": "cpp",
@@ -56,6 +58,10 @@
         "mutex": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "span": "cpp",
+        "variant": "cpp"
     }
 }

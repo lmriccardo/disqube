@@ -2,6 +2,7 @@
 #include <CommonLib/Communication/Sender.hpp>
 #include <CommonLib/Communication/Listener.hpp>
 #include <CommonLib/Communication/Message.hpp>
+#include <CommonLib/Communication/Receiver.hpp>
 #include "Test.hpp"
 
 #define LOCALHOST "127.0.0.1"
@@ -14,72 +15,47 @@ using UdpSender = CommonLib::Communication::UdpSender;
 using TcpSender = CommonLib::Communication::TcpSender;
 using SimpleMessage = CommonLib::Communication::SimpleMessage;
 
-template <typename T>
-using UdpListener = CommonLib::Communication::UdpListener<T>;
+using UdpListener = CommonLib::Communication::UdpListener;
+using TcpListener = CommonLib::Communication::TcpListener;
+using ReceivedData = CommonLib::Communication::ReceivedData;
 
 std::string msg = "Ciao";
 std::string stop = "Stop";
 SimpleMessage sm(1, 0, msg);
 SimpleMessage sm_stop(1, 0, stop);
 
-struct Element
-{
-    std::shared_ptr<SimpleMessage> ss;
-    struct sockaddr_in src;
-};
-
-class MyUdpListener : public UdpListener<struct Element>
-{
-    public:
-        using UdpListener<struct Element>::UdpListener;
-
-        struct Element handleArrivingMessages(
-            unsigned char* buff, const std::size_t nofBytes, struct sockaddr_in* src
-        ) {
-            struct Element e;
-            SimpleMessage _sm(buff, nofBytes);
-            e.ss = std::make_shared<SimpleMessage>(_sm);
-            e.src = *src;
-            return e;
-        }
-
-        bool toBeStopped(const struct Element& e)
-        {
-            return e.ss->getMessage() == "Stop";
-        }
-};
 
 void test_udp()
 {
     try
     {
-        std::cout << "[TEST 1/?] Constructing UdpSender and binding: ";
+        std::cout << "[TEST 1/4] Constructing UdpSender and binding: ";
         UdpSender udp_s(LOCALHOST, SENDER_PORT);
         std::cout << "Passed" << std::endl;
 
-        std::cout << "[TEST 2/?] Sending a SimpleMessage to Localhost using UdpSender: ";
+        std::cout << "[TEST 2/4] Sending a SimpleMessage to Localhost using UdpSender: ";
         udp_s.sendTo(LOCALHOST, LISTENER_PORT, sm);
         assert_eq<int>(errno, 0);
         std::cout << "Passed" << std::endl;
 
-        std::cout << "[TEST 3/?] Sending a SimpleMessage to external using UdpSender on localhost: ";
+        std::cout << "[TEST 3/4] Sending a SimpleMessage to external using UdpSender on localhost: ";
         udp_s.sendTo(Socket::getHostnameIp("google.com"), 80, sm);
         assert_eq<int>(errno, EINVAL);
         std::cout << "Passed" << std::endl;
 
-        std::cout << "[TEST 4/?] Sending a SimpleMessage to localhost and check reception: ";
-        MyUdpListener udp_l(LOCALHOST, LISTENER_PORT, 1);
+        std::cout << "[TEST 4/4] Sending a SimpleMessage to localhost and check reception: ";
+        UdpListener udp_l(LOCALHOST, LISTENER_PORT, 1);
         udp_l.start();
 
         udp_s.sendTo(LOCALHOST, LISTENER_PORT, sm);
         assert_eq<int>(errno, 0);
-        udp_s.sendTo(LOCALHOST, LISTENER_PORT, sm_stop);
+        udp_s.sendTo(LOCALHOST, LISTENER_PORT, (unsigned char*)"", 0);
         assert_eq<int>(errno, 0);
 
         udp_l.join();
-        struct Element e = udp_l.getQueue()->pop();
-        std::shared_ptr<SimpleMessage> sm_ptr = e.ss;
-        assert_eq<std::string>(sm_ptr->getMessage(), "Ciao");
+        ReceivedData e = udp_l.getQueue()->pop();
+        SimpleMessage sm_((*e.data));
+        assert_eq<std::string>(sm_.getMessage(), "Ciao");
 
         std::cout << "Passed" << std::endl;
     }
@@ -89,11 +65,44 @@ void test_udp()
         std::cout << "Failed" << std::endl;
         exit(EXIT_FAILURE);
     }
+}
 
+void test_tcp()
+{
+    try
+    {
+        std::cout << "[TEST 1/?] Constructing TcpSender and binding: ";
+        TcpSender tcp_s(LOCALHOST, SENDER_PORT);
+        std::cout << "Passed" << std::endl;
+
+        std::cout << "[TEST 2/?] Sending a message to Google.com: ";
+        TcpSender tcp_s_real(Socket::getInterfaceIp("eth0"), SENDER_PORT + 1);
+        tcp_s_real.sendTo(Socket::getHostnameIp("google.com"), 80, sm);
+        // tcp_s_real.closeSocket();
+        assert_eq<int>(errno, 0);
+        // assert_eq<bool>(tcp_s_real.isSocketClosed(), true);
+        std::cout << "Passed" << std::endl;
+
+        std::cout << "[TEST 3/?] Listener connection and reception: ";
+        TcpListener tcp_l(LOCALHOST, LISTENER_PORT, 1, 1);
+        tcp_l.start();
+        tcp_l.join();
+    }
+    catch(const std::runtime_error& re)
+    {
+        std::cerr << re.what() << " -> ";
+        std::cout << "Failed" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    
 }
 
 int main()
 {
+    std::cout << "--------------------------------- UDP ---------------------------------" << std::endl;
     test_udp();
+
+    std::cout << "\n--------------------------------- TCP ---------------------------------" << std::endl;
+    test_tcp();
     return 0;
 }

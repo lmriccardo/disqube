@@ -35,13 +35,14 @@ namespace CommonLib::Concurrency
             std::thread::id getThreadId() const;
 
             void join();
-            virtual void run() = 0;
 
             template<typename _Callable, typename ..._Args>
             static std::thread start(_Callable&& fun, bool daemon, _Args&&... args);
 
             static void join(std::thread& thread);
             void start();
+
+            virtual void run() = 0;
     };
     
     template <typename _Callable, typename ..._Args>

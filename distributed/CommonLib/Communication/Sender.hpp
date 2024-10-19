@@ -14,6 +14,8 @@ namespace CommonLib::Communication
     {
         public:
             virtual void sendTo(const std::string& ip, const unsigned short port, unsigned char* buff, const std::size_t n) = 0;
+            virtual void closeSocket() = 0;
+            virtual bool isSocketClosed() = 0;
             void sendTo(const std::string& ip, const unsigned short port, Message& msg);
     };
 
@@ -36,6 +38,16 @@ namespace CommonLib::Communication
                 unsigned char* buff, const std::size_t n);
 
             using Sender::sendTo;
+
+            void closeSocket()
+            {
+                _socket.closeSocket();
+            }
+
+            bool isSocketClosed()
+            {
+                return _socket.isClosed();
+            }
     };
 
     class UdpSender : public Sender
@@ -57,6 +69,16 @@ namespace CommonLib::Communication
                 unsigned char* buff, const std::size_t n);
 
             using Sender::sendTo;
+
+            void closeSocket()
+            {
+                _socket.closeSocket();
+            }
+
+            bool isSocketClosed()
+            {
+                return _socket.isClosed();
+            }
     };
 }
 

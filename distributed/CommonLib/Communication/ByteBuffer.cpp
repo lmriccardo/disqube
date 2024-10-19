@@ -12,6 +12,13 @@ CommonLib::Communication::ByteBuffer::ByteBuffer(const std::size_t capacity)
     _order = ByteOrder::BigEndian;
 }
 
+CommonLib::Communication::ByteBuffer::ByteBuffer(const unsigned char *buffer, const std::size_t nofBytes)
+    : ByteBuffer(nofBytes)
+{
+    put(buffer, nofBytes);
+    position(0);
+}
+
 CommonLib::Communication::ByteBuffer &CommonLib::Communication::ByteBuffer::operator=(const ByteBuffer &other)
 {
     if (this != &other)
@@ -119,7 +126,7 @@ void CommonLib::Communication::ByteBuffer::put(const unsigned int _data)
     put(_datal);
 }
 
-void CommonLib::Communication::ByteBuffer::put(unsigned char* const& _data, const int _start, const std::size_t _size)
+void CommonLib::Communication::ByteBuffer::put(const unsigned char* _data, const int _start, const std::size_t _size)
 {
     position(_start);
     ByteBuffer::checkForOutOfBound(_start, _size, _capacity, "ByteBuffer::put");
@@ -130,7 +137,7 @@ void CommonLib::Communication::ByteBuffer::put(unsigned char* const& _data, cons
     }
 }
 
-void CommonLib::Communication::ByteBuffer::put(unsigned char* const& _data, const std::size_t _size)
+void CommonLib::Communication::ByteBuffer::put(const unsigned char* _data, const std::size_t _size)
 {
     put(_data, _position, _size);
 }

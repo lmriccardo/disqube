@@ -1,4 +1,5 @@
 #include "Thread.hpp"
+#include <iostream>
 
 bool CommonLib::Concurrency::Thread::isJoinable() const
 {
@@ -27,7 +28,7 @@ void CommonLib::Concurrency::Thread::join(std::thread &thread)
 
 void CommonLib::Concurrency::Thread::start()
 {
-    _thread = std::thread(&Thread::run, this);
+    _thread = std::thread([this](){this->run();});
     _id = _thread.get_id();
     _started = true;
 }

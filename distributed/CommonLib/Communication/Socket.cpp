@@ -76,7 +76,7 @@ CommonLib::Communication::Socket::Socket(const Socket &other)
 void CommonLib::Communication::Socket::closeSocket()
 {
     shutdown(_fd, SHUT_RDWR);
-    close(_fd);
+    int ret = close(_fd);
     _closed = true;
 }
 

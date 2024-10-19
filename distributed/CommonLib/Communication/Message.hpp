@@ -37,7 +37,7 @@ namespace CommonLib::Communication
             Message(const MessageType& type, uint8_t id, uint16_t counter) \
                 : Message(type, id, counter, MAX_MESSAGE_CAPACITY) {}
 
-            Message(unsigned char* const& buffer, const std::size_t nofBytes) \
+            Message(const unsigned char* buffer, const std::size_t nofBytes) \
                 : ByteBuffer(nofBytes)
             {
                 put(buffer, nofBytes);
@@ -60,12 +60,12 @@ namespace CommonLib::Communication
             virtual void decode() = 0;
     };
 
-    typedef std::shared_ptr<Message> Message_ptr;
-
-    struct ReceivedMessage
+    // The data received from a socket will be put into a structure
+    // divided into the ByteBuffer and the client information
+    struct ReceivedData
     {
-        Message_ptr         m;    // The arrived message
-        struct sockaddr_in* _src; // The source address and port
+        ByteBuffer_ptr      data; // The ByteBuffer with the received bytes
+        struct sockaddr_in* src;  // Informations of the sender
     };
 
     class SimpleMessage : public Message
@@ -80,7 +80,7 @@ namespace CommonLib::Communication
                     NUM_HEAD_BYTES + msg.size()
                 ), _msg(msg) {};
 
-            SimpleMessage(unsigned char* const& buff, const std::size_t nofBytes) \
+            SimpleMessage(const unsigned char* buff, const std::size_t nofBytes) \
                 : Message(buff, nofBytes) 
             {
                 decode();

@@ -37,6 +37,7 @@ namespace CommonLib::Communication
             const static std::size_t INT_SIZE   = 4;
 
             ByteBuffer(const std::size_t capacity);
+            ByteBuffer(const unsigned char* buffer, const std::size_t nofBytes);
             ByteBuffer(const ByteBuffer& other)
             {
                 _order = other._order;
@@ -68,8 +69,8 @@ namespace CommonLib::Communication
             void put(const unsigned char _data);
             void put(const unsigned short _data);
             void put(const unsigned int _data);
-            void put(unsigned char* const& _data, const int _start, const std::size_t _size);
-            void put(unsigned char* const& _data, const std::size_t _size);
+            void put(const unsigned char* _data, const int _start, const std::size_t _size);
+            void put(const unsigned char* _data, const std::size_t _size);
 
             unsigned char get();
             unsigned short getShort();
