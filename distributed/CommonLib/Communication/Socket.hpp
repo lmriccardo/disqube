@@ -13,6 +13,11 @@
 #include <stdexcept>
 #include <linux/if.h>
 #include <sys/ioctl.h>
+#include <fcntl.h>
+#include <thread>
+
+#define TCPRECONNECTIONS 5
+#define TCPTIMEOUT 1
 
 namespace CommonLib::Communication
 {
@@ -73,18 +78,40 @@ namespace CommonLib::Communication
     class TcpSocket : public Socket
     {
         private:
-            bool               _connected; // Flag indicating whether the socket is connected or not
-            struct sockaddr_in _dst;       // The destination address
+            bool               _connected;  // Flag indicating whether the socket is connected or not
+            struct sockaddr_in _dst;        // The destination address
+            int                _nreconn;    // The number of reconnections if previous attemps failed
+            long int           _timeout_s;  // Timeout in seconds
+            long int           _timeout_us; // Timeout in microsecods
+
+            /**
+             * Attemps a single connection to given destination and returns
+             * True if the connection happened, False otherwise.
+             */
+            bool connectOne(struct sockaddr_in* dst);
 
         public:
-            TcpSocket(const std::string& ip, const unsigned short port) \
-                : Socket(ip, port, SocketType::TCP) {};
+
+            TcpSocket(const std::string& ip, const unsigned short port, const int nreconn) \
+                : Socket(ip, port, SocketType::TCP), _nreconn(nreconn), _timeout_s(TCPTIMEOUT), 
+                  _timeout_us(0) {};
             
+            TcpSocket(const std::string& ip, const unsigned short port)
+                : TcpSocket(ip, port, TCPRECONNECTIONS) {};
+
             TcpSocket(const TcpSocket& other) : Socket(other) 
             {
                 _connected = other._connected;
                 _dst = other._dst;
+                _nreconn = other._nreconn;
+                _timeout_s = other._timeout_s;
+                _timeout_us = other._timeout_us;
             }
+
+            void setNumberOfReconnections(int reconn);
+            void setTimeout(long int sec, long int usec);
+            void setTimeout(long int sec);
+            struct timeval getTimeout();
 
             bool isConnected() const;
             void connectTo(const std::string& ip, const unsigned short port);

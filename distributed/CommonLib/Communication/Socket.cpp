@@ -1,7 +1,8 @@
 #include "Socket.hpp"
 
-CommonLib::Communication::Socket::Socket(const std::string &ip, const unsigned short port, const SocketType &type) \
-    : _ip(ip), _port(port), _type(type), _closed(false)
+CommonLib::Communication::Socket::Socket(
+    const std::string &ip, const unsigned short port, const SocketType &type
+) : _ip(ip), _port(port), _type(type), _closed(false)
 {
     // First construct the socket and get the file descriptor
     struct protoent *prot;
@@ -140,9 +141,81 @@ std::string CommonLib::Communication::Socket::getInterfaceIp(const std::string &
     return addressNumberToString(_addr_i, true);
 }
 
+void CommonLib::Communication::TcpSocket::setNumberOfReconnections(int reconn)
+{
+    _nreconn = reconn;
+}
+
+void CommonLib::Communication::TcpSocket::setTimeout(long int sec, long int usec)
+{
+    _timeout_s = sec;
+    _timeout_us = usec;
+}
+
+void CommonLib::Communication::TcpSocket::setTimeout(long int sec)
+{
+    setTimeout(sec, 0);   
+}
+
+timeval CommonLib::Communication::TcpSocket::getTimeout()
+{
+    struct timeval timeout;
+    timeout.tv_sec = _timeout_s;
+    timeout.tv_usec = _timeout_us;
+    return timeout;
+}
+
 bool CommonLib::Communication::TcpSocket::isConnected() const
 {
     return _connected;
+}
+
+bool CommonLib::Communication::TcpSocket::connectOne(struct sockaddr_in* dst)
+{
+    // Set the socket to non-blocking mode
+    int flags = fcntl(_fd, F_GETFL, 0);
+    fcntl(_fd, F_SETFL, flags | O_NONBLOCK);
+
+    // Try connection to the destination server. Since the socket is now
+    // non-blocking it will instantly returns a result. Notice that the
+    // result can be -1, and it is OKAY only if the corresponding ERRNO
+    // is set to EINPROGRESS.
+    int result = connect(_fd, (struct sockaddr*)&_dst, sizeof(_dst));
+    if (result < 0 && errno != EINPROGRESS) 
+    {
+        return false;
+    }
+
+    // Let's create the set of file descriptors the select() operation
+    // will look into, to see if they are accessible for R/W operations.
+    // Read and Write FD sets are different, and we only need to set
+    // Write FD, since our last objective is to be able to send data.
+    fd_set writefds;
+    FD_ZERO(&writefds);
+    FD_SET(_fd, &writefds);
+
+    // Set the timeout for the select operation
+    struct timeval timeout;
+    timeout.tv_sec = _timeout_s;
+    timeout.tv_usec = _timeout_us;
+
+    // Perform the select syscall and wait for the writable socket to be ready
+    if ((result = select(_fd + 1, nullptr, &writefds, nullptr, &timeout)) <= 0)
+    {
+        return false;
+    }
+
+    // Check for connection success or error using getsockopt
+    int sock_error;
+    socklen_t len = sizeof(sock_error);
+    if (getsockopt(_fd, SOL_SOCKET, SO_ERROR, &sock_error, &len) < 0 || sock_error != 0) 
+    {
+        return false;
+    }
+
+    // Reset socket to blocking mode after successful connection
+    fcntl(_fd, F_SETFL, flags);
+    return true;
 }
 
 void CommonLib::Communication::TcpSocket::connectTo(const std::string &ip, const unsigned short port)
@@ -152,14 +225,21 @@ void CommonLib::Communication::TcpSocket::connectTo(const std::string &ip, const
     _dst.sin_port = htons(port);
     inet_pton(AF_INET, ip.c_str(), &_dst.sin_addr);
 
-    if (connect(_fd, (struct sockaddr*)&_dst, sizeof(_dst)) < 0)
+    int reconn_counter = 0;
+    while (reconn_counter < _nreconn)
     {
-        std::cerr << std::strerror(errno) << std::endl;
-        _connected = false;
-        return;
+        if (connectOne(&_dst))
+        {
+            _connected = true;
+            errno = EXIT_SUCCESS;
+            return;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        reconn_counter++;
     }
 
-    _connected = true;
+    _connected = false;
 }
 
 std::string CommonLib::Communication::TcpSocket::getDestinatioIp() const

@@ -31,6 +31,16 @@ void CommonLib::Communication::TcpSender::sendTo(
     }
 }
 
+void CommonLib::Communication::TcpSender::setTimeout(long int sec, long int usec)
+{
+    _socket.setTimeout(sec, usec);
+}
+
+void CommonLib::Communication::TcpSender::setTimeout(long int sec)
+{
+    _socket.setTimeout(sec);
+}
+
 void CommonLib::Communication::UdpSender::sendTo(
     const std::string &ip, const unsigned short port, unsigned char *buff, const std::size_t n
 ) {

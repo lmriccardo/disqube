@@ -48,6 +48,10 @@ namespace CommonLib::Communication
             {
                 return _socket.isClosed();
             }
+
+            void setTimeout(long int sec, long int usec);
+            void setTimeout(long int sec);
+            
     };
 
     class UdpSender : public Sender

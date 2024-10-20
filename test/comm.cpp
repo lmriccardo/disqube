@@ -71,21 +71,38 @@ void test_tcp()
 {
     try
     {
-        std::cout << "[TEST 1/?] Constructing TcpSender and binding: ";
+        std::cout << "[TEST 1/3] Constructing TcpSender and binding: ";
         TcpSender tcp_s(LOCALHOST, SENDER_PORT);
         std::cout << "Passed" << std::endl;
 
-        std::cout << "[TEST 2/?] Sending a message to Google.com: ";
+        std::cout << "[TEST 2/3] Sending a message to Google.com: ";
         TcpSender tcp_s_real(Socket::getInterfaceIp("eth0"), SENDER_PORT + 1);
         tcp_s_real.sendTo(Socket::getHostnameIp("google.com"), 80, sm);
-        // tcp_s_real.closeSocket();
+        tcp_s_real.closeSocket();
         assert_eq<int>(errno, 0);
-        // assert_eq<bool>(tcp_s_real.isSocketClosed(), true);
+        assert_eq<bool>(tcp_s_real.isSocketClosed(), true);
         std::cout << "Passed" << std::endl;
 
-        std::cout << "[TEST 3/?] Listener connection and reception: ";
+        std::cout << "[TEST 3/3] Listener connection and reception: ";
         TcpListener tcp_l(LOCALHOST, LISTENER_PORT, 1, 1);
+        tcp_l.setTimeout(2);
         tcp_l.start();
+
+        // Send the message and disconnect the socket
+        tcp_s.setTimeout(2);
+        tcp_s.sendTo(LOCALHOST, LISTENER_PORT, sm);
+        tcp_s.closeSocket();
+        assert_eq<bool>(tcp_s.isSocketClosed(), true);
+        std::cout << "Passed" << std::endl;
+
+        // Check if the message has been received
+        ReceivedData e = tcp_l.getQueue()->pop();
+        SimpleMessage sm_((*e.data));
+        assert_eq<std::string>(sm_.getMessage(), "Ciao");
+
+        std::cout << "Passed" << std::endl;
+
+        tcp_l.stop();
         tcp_l.join();
     }
     catch(const std::runtime_error& re)

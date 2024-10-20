@@ -66,6 +66,44 @@ int CommonLib::Communication::TcpListener::handleReceivers()
     return voidpos;
 }
 
+int CommonLib::Communication::TcpListener::acceptIncoming(struct sockaddr_in& client, socklen_t clientlen)
+{
+    // Get the socket file descriptor
+    int fd = _socket.getSocketFileDescriptor();
+
+    // Create the sets of readable sockets
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(fd, &readfds);
+
+    // Set the timeout duration
+    struct timeval timeout = _socket.getTimeout();
+
+    // Wait for the listening socket to become readable (incoming connection)
+    if (select(fd + 1, &readfds, nullptr, nullptr, &timeout) <= 0)
+    {
+        // Returns -1, meaning that either there was an error or the
+        // timeout expired when waiting for incoming connections
+        std::cerr << "[TcpListener::acceptIncoming] Error when selecting: ";
+        std::cerr << std::strerror(errno) << std::endl;
+        return -1;
+    }
+
+    // If we reach here, there is an incoming connection, proceed to accept it
+    if (!FD_ISSET(fd, &readfds)) return -1;
+   
+    int client_socket;
+    if ((client_socket = accept(fd, (struct sockaddr*)&client, &clientlen)) < 0)
+    {
+
+        std::cerr << "[TcpListener::acceptIncoming] Error when accepting: ";
+        std::cerr << std::strerror(errno) << "->" << client_socket << std::endl;
+        return -1;
+    }
+
+    return client_socket;
+}
+
 void CommonLib::Communication::TcpListener::run()
 {
     // Take the file descriptor of the current TCP socket
@@ -88,6 +126,8 @@ void CommonLib::Communication::TcpListener::run()
     // connections, a receiver thread.
     while (!this->_sigstop)
     {
+        std::cout << this->_sigstop << std::endl;
+
         // Handle all the receivers
         int voidpos = handleReceivers();
 
@@ -104,13 +144,17 @@ void CommonLib::Communication::TcpListener::run()
         socklen_t clientlen = sizeof(client);
         int client_socket;
 
+#ifdef DEBUG_MODE
+        std::cout << "Start Accepting" << std::endl;
+#endif
+
         // Accept incoming connections and save the source informations
-        if ((client_socket = accept(fd, (struct sockaddr*)&client, &clientlen)) < 0)
-        {
-            std::cerr << "[TcpListener::listenFrom] Failed Accepting: ";
-            std::cerr << std::strerror(errno) << std::endl;
-            continue;
-        }
+        if ((client_socket = acceptIncoming(client, clientlen)) < 0) continue;
+
+#ifdef DEBUG_MODE
+        std::cout << "Accepted Connection of: " << Socket::addressNumberToString(client.sin_addr.s_addr, true);
+        std::cout << " on port " << ntohs(client.sin_port) << std::endl;
+#endif
 
         _recvs[voidpos] = std::make_shared<TcpReceiver>(
             this->_queue, _socket, "TcpReceiver", client_socket, &client);
@@ -130,4 +174,14 @@ void CommonLib::Communication::TcpListener::run()
             recv->join();
         }
     }
+}
+
+void CommonLib::Communication::TcpListener::setTimeout(long int sec, long int usec)
+{
+    _socket.setTimeout(sec, usec);
+}
+
+void CommonLib::Communication::TcpListener::setTimeout(long int sec)
+{
+    _socket.setTimeout(sec);
 }

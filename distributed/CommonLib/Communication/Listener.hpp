@@ -90,6 +90,11 @@ namespace CommonLib::Communication
 
             int handleReceivers();
 
+            /**
+             * Wait for a connection of a client until the timeout expires.
+             */
+            int acceptIncoming(struct sockaddr_in& client, socklen_t clientlen);
+
         public:
             TcpListener(const std::string& ip, unsigned short port, Queue_ptr<struct ReceivedData> queue, const std::size_t nconn)
                 : Listener(queue, "TcpListener"), _socket(ip, port), _recvs(nconn, nullptr), _clientIdx(0) {};
@@ -107,6 +112,9 @@ namespace CommonLib::Communication
              * @throws runtime_error If listen syscall fail.
              */
             void run() override;
+
+            void setTimeout(long int sec, long int usec);
+            void setTimeout(long int sec);
     };
 }
 
