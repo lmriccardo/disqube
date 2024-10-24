@@ -43,6 +43,7 @@ namespace CommonLib::Concurrency
             void start();
 
             virtual void run() = 0;
+            virtual bool isRunning() const = 0;
     };
     
     template <typename _Callable, typename ..._Args>

@@ -35,7 +35,7 @@ namespace CommonLib::Communication
             /**
              * Returns true if the receiver has stopped, False otherwise.
              */
-            bool hasStopped();
+            bool hasStopped() const;
     };
 
     class UdpReceiver : public Receiver
@@ -66,6 +66,8 @@ namespace CommonLib::Communication
                 Queue_ptr<struct ReceivedData> queue, const TcpSocket& socket, const std::string& name,
                 int clientfd, struct sockaddr_in* client) : 
                     Receiver(queue), Thread(name), _socket(socket), _clientfd(clientfd), _client(client) {};
+
+            bool isRunning() const override;
     };
 }
 

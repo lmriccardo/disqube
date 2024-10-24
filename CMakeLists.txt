@@ -1,32 +1,32 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(libdistributed)
+project(libdisqube)
 
 file(GLOB_RECURSE LIB_SOURCES
-    distributed/*.cpp
+    disqube/*.cpp
 )
 
 file(GLOB_RECURSE LIB_HEADERS
-    distributed/*.hpp
+    disqube/*.hpp
 )
 
-add_library(distributed STATIC ${LIB_SOURCES} ${LIB_HEADERS})
+add_library(disqube STATIC ${LIB_SOURCES} ${LIB_HEADERS})
 
-target_include_directories(distributed PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/distributed>
+target_include_directories(disqube PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/disqube>
     $<INSTALL_INTERFACE:include>
 )
 
-add_executable(Main distributed/main.cpp)
-target_link_libraries(Main PRIVATE distributed)
+add_executable(Main disqube/main.cpp)
+target_link_libraries(Main PRIVATE disqube)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(REUSE_MODE=1)
     add_compile_definitions(DEBUG_MODE=1)
 endif()
 
-install(TARGETS distributed
-    EXPORT distributedExport
+install(TARGETS disqube
+    EXPORT disqubeExport
     DESTINATION lib
 )
 
@@ -34,10 +34,10 @@ install(FILES ${LIB_HEADERS}
     DESTINATION include
 )
 
-install(EXPORT distributedExport
-    FILE distributedConfig.cmake
-    NAMESPACE distributed::
-    DESTINATION lib/cmake/distributed
+install(EXPORT disqubeExport
+    FILE disqubeConfig.cmake
+    NAMESPACE disqube::
+    DESTINATION lib/cmake/disqube
 )
 
 add_subdirectory(test)

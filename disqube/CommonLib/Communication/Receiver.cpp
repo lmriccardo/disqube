@@ -9,7 +9,7 @@ struct CommonLib::Communication::ReceivedData CommonLib::Communication::Receiver
     return rdata;
 }
 
-bool CommonLib::Communication::Receiver::hasStopped()
+bool CommonLib::Communication::Receiver::hasStopped() const
 {
     return _stopped;
 }
@@ -95,4 +95,9 @@ void CommonLib::Communication::TcpReceiver::receive()
 void CommonLib::Communication::TcpReceiver::run()
 {
     receive();
+}
+
+bool CommonLib::Communication::TcpReceiver::isRunning() const
+{
+    return !hasStopped();
 }

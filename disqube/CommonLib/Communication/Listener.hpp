@@ -39,6 +39,11 @@ namespace CommonLib::Communication
             void stop();
 
             /**
+             * Check if the current thread is running or not
+             */
+            bool isRunning() const;
+
+            /**
              * Returns an element from the queue
              */
             struct ReceivedData getElement();
@@ -72,6 +77,13 @@ namespace CommonLib::Communication
 
             UdpListener(const UdpSocket& s, const std::size_t c)
                 : Listener(c, "UdpListener"), _socket(s), _recv(this->_queue, _socket) {};
+
+            ~UdpListener()
+            {
+                _socket.closeSocket();
+            }
+
+            using Listener::isRunning;
 
             /**
              * This function will listen from incoming messages from any
@@ -107,6 +119,13 @@ namespace CommonLib::Communication
 
             TcpListener(const TcpSocket& s, const std::size_t capacity, const std::size_t nconn)
                 : Listener(capacity, "TcpListener"), _socket(s), _recvs(nconn, nullptr), _clientIdx(0) {};
+            
+            ~TcpListener()
+            {
+                _socket.closeSocket();
+            }
+
+            using Listener::isRunning;
 
             /**
              * @throws runtime_error If listen syscall fail.

@@ -5,6 +5,11 @@ void CommonLib::Communication::Listener::stop()
     _sigstop = true;
 }
 
+bool CommonLib::Communication::Listener::isRunning() const
+{
+    return !_sigstop;
+}
+
 struct CommonLib::Communication::ReceivedData CommonLib::Communication::Listener::getElement()
 {
     return _queue->pop();

@@ -31,6 +31,11 @@ class MyThread : public CommonLib::Concurrency::Thread
             std::cout << " finished putting " << this->counter;
             std::cout << " elements" << std::endl;
         }
+
+        bool isRunning() const
+        {
+            return false;
+        }
 };
 
 class MyDaemonThread : public CommonLib::Concurrency::Thread
@@ -64,6 +69,11 @@ class MyDaemonThread : public CommonLib::Concurrency::Thread
         bool isStopped()
         {
             return stopped;
+        }
+
+        bool isRunning() const
+        {
+            return !stopped;
         }
 };
 
