@@ -28,7 +28,7 @@ namespace CommonLib::Communication
 
             ~CommunicationInterface()
             {
-                this->close(); // Close all sockets on exit
+                if (!isClosed()) this->close(); // Close all sockets on exit
             }
 
             void close(); // Close the interface, meaning sender and listener socket

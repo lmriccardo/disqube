@@ -52,6 +52,8 @@ namespace CommonLib::Communication
              * Returns the pointer to the queue
              */
             Queue_ptr<struct ReceivedData> getQueue();
+
+            virtual const Socket& getSocket() = 0;
     };
 
     class UdpListener : public Listener
@@ -91,6 +93,11 @@ namespace CommonLib::Communication
              * fill the queue with received messages. 
              */
             void run() override;
+
+            /**
+             * Returns the socket of the UDP Listener
+             */
+            const UdpSocket& getSocket() override;
     };
 
     class TcpListener : public Listener
@@ -134,6 +141,11 @@ namespace CommonLib::Communication
 
             void setTimeout(long int sec, long int usec);
             void setTimeout(long int sec);
+
+            /**
+             * Returns the socket of the Tcp Listener
+             */
+            const TcpSocket& getSocket() override;
     };
 }
 

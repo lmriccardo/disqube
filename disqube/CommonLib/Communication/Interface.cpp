@@ -2,13 +2,20 @@
 
 void CommonLib::Communication::CommunicationInterface::close()
 {
+    // Stop the listener
+    this->_listener->stop();
+    
+    // To stop the listening thread we need to send empty message
+    std::string ip = _listener->getSocket().getIpAddress();
+    unsigned short port = _listener->getSocket().getPortNumber();
+    _sender->sendTo(ip, port, (unsigned char*)"", 0);
+
     // First close the sender socket
     this->_sender->closeSocket();
 
     // Then, close the receiver socket. Listeners, being
     // thread first needs to be stopped and then to be joined.
     // All listener threads are joinable, no check is needed
-    this->_listener->stop();
     this->_listener->join();
 }
 

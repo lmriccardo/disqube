@@ -39,6 +39,11 @@ void CommonLib::Communication::UdpListener::run()
     }
 }
 
+const CommonLib::Communication::UdpSocket &CommonLib::Communication::UdpListener::getSocket()
+{
+    return _socket;
+}
+
 int CommonLib::Communication::TcpListener::handleReceivers()
 {
     int voidpos = _recvs.capacity() - 1;
@@ -189,4 +194,9 @@ void CommonLib::Communication::TcpListener::setTimeout(long int sec, long int us
 void CommonLib::Communication::TcpListener::setTimeout(long int sec)
 {
     _socket.setTimeout(sec);
+}
+
+const CommonLib::Communication::TcpSocket &CommonLib::Communication::TcpListener::getSocket()
+{
+    return _socket;
 }
