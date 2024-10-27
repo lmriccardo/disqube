@@ -146,6 +146,20 @@ std::string CommonLib::Communication::Socket::getInterfaceIp(const std::string &
     return addressNumberToString(_addr_i, true);
 }
 
+std::string CommonLib::Communication::Socket::getBroadcastIp(const std::string& interface)
+{
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    struct ifreq ifr;
+
+    ifr.ifr_addr.sa_family = AF_INET;
+    strncpy(ifr.ifr_name , interface.c_str(), IFNAMSIZ - 1);
+    ioctl(sockfd, SIOCGIFBRDADDR, &ifr);
+    close(sockfd);
+
+    u_int32_t _addr_i = ( (struct sockaddr_in *)&ifr.ifr_broadaddr )->sin_addr.s_addr;
+    return std::move(addressNumberToString(_addr_i, true));
+}
+
 void CommonLib::Communication::TcpSocket::setNumberOfReconnections(int reconn)
 {
     _nreconn = reconn;

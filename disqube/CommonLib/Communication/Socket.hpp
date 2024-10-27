@@ -65,6 +65,7 @@ namespace CommonLib::Communication
             static std::string addressNumberToString(unsigned int addr, const bool be);
             static std::string getHostnameIp(const std::string& hostname);
             static std::string getInterfaceIp(const std::string& interface);
+            static std::string getBroadcastIp(const std::string& interface);
     };
 
     class UdpSocket : public Socket
