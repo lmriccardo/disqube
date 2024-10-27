@@ -54,6 +54,7 @@ namespace CommonLib::Communication
                 closeSocket();
             }
 
+            bool isSocketValid() const;
             void closeSocket();
             bool isClosed() const;
             const std::string& getIpAddress() const;
@@ -114,6 +115,7 @@ namespace CommonLib::Communication
             struct timeval getTimeout();
 
             bool isConnected() const;
+            void disconnect();
             void connectTo(const std::string& ip, const unsigned short port);
             std::string getDestinatioIp() const;
             unsigned short getDestinationPort() const;

@@ -78,7 +78,7 @@ void CommonLib::Communication::TcpReceiver::receive()
 
         // In the other case, if the number of received bytes is equal
         // to 0, this means that the client disconnected
-        if (nofBytes == 0)
+        if (nofBytes == 1 || nofBytes == 0)
         {
             this->_stopped = true;
             break;

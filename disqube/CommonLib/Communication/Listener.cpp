@@ -90,8 +90,10 @@ int CommonLib::Communication::TcpListener::acceptIncoming(struct sockaddr_in& cl
     struct timeval timeout = _socket.getTimeout();
 
     // Wait for the listening socket to become readable (incoming connection)
-    if (select(fd + 1, &readfds, nullptr, nullptr, &timeout) <= 0)
+    int select_result;
+    if ((select_result = select(fd + 1, &readfds, nullptr, nullptr, &timeout)) <= 0)
     {
+        if (select_result == 0) return -1;
         // Returns -1, meaning that either there was an error or the
         // timeout expired when waiting for incoming connections
         std::cerr << "[TcpListener::acceptIncoming] Error when selecting: ";
@@ -136,8 +138,6 @@ void CommonLib::Communication::TcpListener::run()
     // connections, a receiver thread.
     while (!this->_sigstop)
     {
-        std::cout << this->_sigstop << std::endl;
-
         // Handle all the receivers
         int voidpos = handleReceivers();
 
@@ -147,6 +147,9 @@ void CommonLib::Communication::TcpListener::run()
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             continue;
         }
+
+        // Check if the file descritor is still valid
+        if (!_socket.isSocketValid()) break;
 
         // Otherwise, wait for a connection
         struct sockaddr_in client;

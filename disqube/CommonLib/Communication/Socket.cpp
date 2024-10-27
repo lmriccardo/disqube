@@ -74,6 +74,11 @@ CommonLib::Communication::Socket::Socket(const Socket &other)
     _fd = other._fd;
 }
 
+bool CommonLib::Communication::Socket::isSocketValid() const
+{
+    return fcntl(_fd, F_GETFD) != -1 || errno != EBADF;
+}
+
 void CommonLib::Communication::Socket::closeSocket()
 {
     shutdown(_fd, SHUT_RDWR);
@@ -170,6 +175,12 @@ bool CommonLib::Communication::TcpSocket::isConnected() const
     return _connected;
 }
 
+void CommonLib::Communication::TcpSocket::disconnect()
+{
+    _connected = false;
+    memset(&_dst, 0, sizeof(struct sockaddr_in));
+}
+
 bool CommonLib::Communication::TcpSocket::connectOne(struct sockaddr_in* dst)
 {
     // Set the socket to non-blocking mode
@@ -183,6 +194,8 @@ bool CommonLib::Communication::TcpSocket::connectOne(struct sockaddr_in* dst)
     int result = connect(_fd, (struct sockaddr*)&_dst, sizeof(_dst));
     if (result < 0 && errno != EINPROGRESS) 
     {
+        // It can be that the socket is already connected
+        if (errno == EISCONN) return true;
         return false;
     }
 

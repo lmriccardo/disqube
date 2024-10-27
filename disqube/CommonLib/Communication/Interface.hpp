@@ -26,12 +26,9 @@ namespace CommonLib::Communication
                 _queue = std::make_shared<Concurrency::Queue<ReceivedData>>(capacity);
             }
 
-            ~CommunicationInterface()
-            {
-                if (!isClosed()) this->close(); // Close all sockets on exit
-            }
+            virtual ~CommunicationInterface() = 0;
 
-            void close(); // Close the interface, meaning sender and listener socket
+            virtual void close() = 0; // Close the interface, meaning sender and listener socket
             bool isClosed(); // Check if the interface has been closed successfully
 
             // Sends a single message to the destination address and port
@@ -42,6 +39,9 @@ namespace CommonLib::Communication
 
             // Start the communication interface, which means starting the listener
             void start();
+
+            // Stop the sender socket
+            void senderStop();
     };
 
     class UdpCommunicationInterface : public CommunicationInterface
@@ -49,6 +49,13 @@ namespace CommonLib::Communication
         public:
             UdpCommunicationInterface(const std::string& ip, unsigned short sport, 
                 unsigned short lport, const std::size_t capacity);
+
+            ~UdpCommunicationInterface() override
+            {
+                if (!isClosed()) this->close(); // Close all sockets on exit
+            }
+
+            void close() override;
     };
 
     class TcpCommunicationInterface : public CommunicationInterface
@@ -58,6 +65,18 @@ namespace CommonLib::Communication
                 unsigned short lport, const std::size_t nconn, 
                 const std::size_t capacity, long int timesec,
                 long int timeusec);
+
+            ~TcpCommunicationInterface() override
+            {
+                if (!isClosed()) this->close(); // Close all sockets on exit
+            }
+
+            void close() override;
+
+            /**
+             * Disconnects the sending socket without actually closing it.
+             */
+            void disconnect();
     };
 }
 

@@ -51,6 +51,7 @@ namespace CommonLib::Communication
 
             void setTimeout(long int sec, long int usec);
             void setTimeout(long int sec);
+            void disconnect();
             
     };
 

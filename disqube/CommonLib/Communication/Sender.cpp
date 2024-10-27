@@ -41,6 +41,16 @@ void CommonLib::Communication::TcpSender::setTimeout(long int sec)
     _socket.setTimeout(sec);
 }
 
+void CommonLib::Communication::TcpSender::disconnect()
+{
+    // If the socket is not connected to any address then returns
+    if (!_socket.isConnected()) return;
+    
+    std::string ip = _socket.getDestinatioIp();
+    unsigned short port = _socket.getDestinationPort();
+    sendTo(ip, port, (unsigned char*)"1", 1);
+}
+
 void CommonLib::Communication::UdpSender::sendTo(
     const std::string &ip, const unsigned short port, unsigned char *buff, const std::size_t n
 ) {
