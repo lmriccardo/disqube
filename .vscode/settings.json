@@ -62,6 +62,10 @@
         "charconv": "cpp",
         "format": "cpp",
         "span": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "regex": "cpp",
+        "fstream": "cpp"
     }
 }
