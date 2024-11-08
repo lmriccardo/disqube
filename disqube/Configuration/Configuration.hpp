@@ -25,6 +25,9 @@ namespace Configuration
             void readIniFile(const std::string& filepath);
             static std::vector<std::string> splitString(
                 const std::string& line, const std::string& delimiter);
+            
+            std::string getConfigurationValue(
+                const std::string& gname, const std::string& pname);
 
         public:
             DisqubeConfiguration(const std::string& iniFile)
@@ -35,7 +38,22 @@ namespace Configuration
             ~DisqubeConfiguration() = default;
 
             void addGroup(PropertyGroup_ptr group);
-            std::string getConfigurationValue(const std::string& gname, const std::string& pname);
+
+            // Environment Configuration Values
+            unsigned int getNumOfQubes();
+            unsigned int getMaxNumOfQubes();
+            bool isDiscoverEnabled();
+
+            // Network Configuration Values
+            std::string getNetworkInterface();
+            unsigned short getTcpSenderPort();
+            unsigned short getTcpListenerPort();
+            unsigned short getUdpSenderPort();
+            unsigned short getUdpListenerPort();
+            unsigned short getBroadcastPort();
+            std::size_t getTcpMaxCapacityQueue();
+            std::size_t getTcpMaxNumOfConnections();
+            std::size_t getUdpMaxCapacityQueue();
     };
 }
 

@@ -109,3 +109,64 @@ std::string Configuration::DisqubeConfiguration::getConfigurationValue(const std
     // value otherwise nullptr
     return prp->getPropertyValue();
 }
+
+unsigned int Configuration::DisqubeConfiguration::getNumOfQubes()
+{
+    return std::stoi(this->getConfigurationValue("Environment", "NUMBER_OF_QUBES"));
+}
+
+unsigned int Configuration::DisqubeConfiguration::getMaxNumOfQubes()
+{
+    return std::stoi(this->getConfigurationValue("Environment", "MAX_NUM_OF_QUBES"));
+}
+
+bool Configuration::DisqubeConfiguration::isDiscoverEnabled()
+{
+    int flag = std::stoi(this->getConfigurationValue("Environment", "DISCOVER"));
+    return flag == 1;
+}
+
+std::string Configuration::DisqubeConfiguration::getNetworkInterface()
+{
+    return this->getConfigurationValue("Network", "INTERFACE");
+}
+
+unsigned short Configuration::DisqubeConfiguration::getTcpSenderPort()
+{
+    return (unsigned short)std::stoi(this->getConfigurationValue("Network", "TCP_SEND_PORT"));
+}
+
+unsigned short Configuration::DisqubeConfiguration::getTcpListenerPort()
+{
+    return (unsigned short)std::stoi(this->getConfigurationValue("Network", "TCP_LISTEN_PORT"));
+}
+
+unsigned short Configuration::DisqubeConfiguration::getUdpSenderPort()
+{
+    return (unsigned short)std::stoi(this->getConfigurationValue("Network", "UDP_SEND_PORT"));
+}
+
+unsigned short Configuration::DisqubeConfiguration::getUdpListenerPort()
+{
+    return (unsigned short)std::stoi(this->getConfigurationValue("Network", "UDP_LISTEN_PORT"));
+}
+
+unsigned short Configuration::DisqubeConfiguration::getBroadcastPort()
+{
+    return (unsigned short)std::stoi(this->getConfigurationValue("Network", "BROADCAST_PORT"));
+}
+
+std::size_t Configuration::DisqubeConfiguration::getTcpMaxCapacityQueue()
+{
+    return (std::size_t)std::stoi(this->getConfigurationValue("Network", "TCP_CAPACITY_QUEUE"));
+}
+
+std::size_t Configuration::DisqubeConfiguration::getTcpMaxNumOfConnections()
+{
+    return (std::size_t)std::stoi(this->getConfigurationValue("Network", "TCP_MAX_NOF_CONNECTION"));
+}
+
+std::size_t Configuration::DisqubeConfiguration::getUdpMaxCapacityQueue()
+{
+    return (std::size_t)std::stoi(this->getConfigurationValue("Network", "UDP_CAPACITY_QUEUE"));
+}

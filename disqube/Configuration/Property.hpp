@@ -21,7 +21,7 @@ namespace Configuration
                 : _name(name), _value(value) {};
 
             const std::string& getPropertyName() const;
-            std::string getPropertyValue() const;
+            const std::string& getPropertyValue() const;
     };
     
     typedef std::shared_ptr<Property> Property_ptr;

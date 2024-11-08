@@ -78,6 +78,9 @@ namespace CommonLib::Communication
              */
             void disconnect();
     };
+
+    typedef std::shared_ptr<TcpCommunicationInterface> TcpCommunicationInterface_ptr;
+    typedef std::shared_ptr<UdpCommunicationInterface> UdpCommunicationInterface_ptr;
 }
 
 #endif

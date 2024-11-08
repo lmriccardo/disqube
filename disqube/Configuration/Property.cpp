@@ -5,7 +5,7 @@ const std::string &Configuration::Property::getPropertyName() const
     return _name;
 }
 
-std::string Configuration::Property::getPropertyValue() const
+const std::string& Configuration::Property::getPropertyValue() const
 {
     return _value;
 }
