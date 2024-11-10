@@ -15,6 +15,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <thread>
+#include <math.h>
 
 #define TCPRECONNECTIONS 5
 #define TCPTIMEOUT 1
@@ -26,6 +27,16 @@ namespace CommonLib::Communication
         UDP,
         TCP,
         RAW
+    };
+
+    struct SubnetInfo
+    {
+        unsigned int subnet;         // The subnet address
+        unsigned short userNofBits;  // The number of bits reserved for the user
+        unsigned int first;          // First usable address
+        unsigned int last;           // Last usable address
+        unsigned int broadcast;      // The broadcast address
+        unsigned int nofUsable;      // The total number of usable address
     };
 
     class Socket
@@ -63,9 +74,11 @@ namespace CommonLib::Communication
             const struct sockaddr_in& getSource() const;
 
             static std::string addressNumberToString(unsigned int addr, const bool be);
+            static unsigned int addressStringToNumber(const std::string& addr);
             static std::string getHostnameIp(const std::string& hostname);
             static std::string getInterfaceIp(const std::string& interface);
             static std::string getBroadcastIp(const std::string& interface);
+            static struct SubnetInfo getSubnetConfiguration(const std::string& addr, const std::string& mask);
     };
 
     class UdpSocket : public Socket

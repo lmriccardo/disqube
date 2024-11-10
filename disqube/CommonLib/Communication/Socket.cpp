@@ -121,6 +121,21 @@ std::string CommonLib::Communication::Socket::addressNumberToString(unsigned int
     return std::string(_addr);
 }
 
+unsigned int CommonLib::Communication::Socket::addressStringToNumber(const std::string &addr)
+{
+    struct sockaddr_in sa;
+
+    // Convert the string IP to in_addr (network byte order)
+    if (inet_pton(AF_INET, addr.c_str(), &(sa.sin_addr)) != 1)
+    {
+        throw std::invalid_argument("Invalid IP address format");
+    }
+    
+    // Convert the in_addr to unsigned int (32-bit), from
+    // network-byte order to host byte order (be -> le)
+    return ntohl(sa.sin_addr.s_addr);
+}
+
 std::string CommonLib::Communication::Socket::getHostnameIp(const std::string &hostname)
 {
     struct hostent *hostentry = gethostbyname(hostname.c_str());
@@ -130,6 +145,37 @@ std::string CommonLib::Communication::Socket::getHostnameIp(const std::string &h
     }
 
     return addressNumberToString((*((struct in_addr*) hostentry->h_addr_list[0])).s_addr, true);
+}
+
+struct CommonLib::Communication::SubnetInfo CommonLib::Communication::Socket::getSubnetConfiguration(
+    const std::string &addr, const std::string &mask
+) {
+    struct SubnetInfo si; // Initialize the output structure
+    
+    // Convert both the subnet address and subnet mask into integer
+    unsigned int addr_i = Socket::addressStringToNumber(addr);
+    unsigned int mask_i = Socket::addressStringToNumber(mask);
+
+    // Compute the broadcast address
+    unsigned int brd_i = addr_i | (0xFFFFFFFF - mask_i);
+    
+    // Compute the number of usable addresses and user-reserved bits
+    unsigned int usable = brd_i - (addr_i + 1);
+    unsigned short user_bits = (unsigned short)(floor(log2(usable)) + 1);
+
+    // Compute the first and last usable addresses
+    unsigned int first = addr_i + 1;
+    unsigned int last = brd_i - 1;
+
+    // Fill the structure
+    si.subnet = addr_i;
+    si.broadcast = brd_i;
+    si.first = first;
+    si.last = last;
+    si.nofUsable = usable;
+    si.userNofBits = user_bits;
+
+    return si;
 }
 
 std::string CommonLib::Communication::Socket::getInterfaceIp(const std::string &interface)

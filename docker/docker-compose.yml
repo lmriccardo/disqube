@@ -1,0 +1,24 @@
+# Version specification (not strictly required)
+version: '3.8'
+
+# Name of the docker compose "project"
+name: disqube-example
+
+# Service definition
+services:
+  qube:
+    image: alpine
+    command: tail -f /dev/null
+    networks:
+      - qubenet
+    deploy:
+      replicas: 3
+
+# Definition of custom networks
+networks:
+  qubenet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.10.0/24
+          gateway: 172.20.10.1

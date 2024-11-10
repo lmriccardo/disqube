@@ -17,7 +17,7 @@ target_include_directories(disqube PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-add_executable(Main disqube/main.cpp)
+add_executable(Main disqube/disqube.cpp)
 target_link_libraries(Main PRIVATE disqube)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

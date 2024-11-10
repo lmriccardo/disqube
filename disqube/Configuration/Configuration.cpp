@@ -36,7 +36,7 @@ void Configuration::DisqubeConfiguration::readIniFile(const std::string &filepat
 
     std::string currLine;
     std::regex headerPattern("^\\[{1}[a-zA-Z]+\\]{1}$");
-    std::regex valuePattern("\\w+\\s*={1}\\s*\\w+");
+    std::regex valuePattern("\\w+\\s*={1}\\s*[\\w/\\.]+");
 
     while (std::getline(infile, currLine))
     {
@@ -74,6 +74,9 @@ void Configuration::DisqubeConfiguration::readIniFile(const std::string &filepat
             currGroup->addProperty(std::make_shared<Property>(name, value));
         }
     }
+
+    // Add the last created group
+    addGroup(currGroup);
 }
 
 std::vector<std::string> Configuration::DisqubeConfiguration::splitString(
@@ -101,7 +104,13 @@ void Configuration::DisqubeConfiguration::addGroup(PropertyGroup_ptr group)
 std::string Configuration::DisqubeConfiguration::getConfigurationValue(const std::string &gname, const std::string &pname)
 {
     auto it = _groups.find(gname);
-    if (it == _groups.end()) throw std::runtime_error("No such given key exists!");
+    if (it == _groups.end()) 
+    {
+        std::stringstream error_ss;
+        error_ss << "No such given key exists! Key: " << gname;
+        throw std::runtime_error(error_ss.str());
+    }
+
     PropertyGroup_ptr grp = it->second;
     Property_ptr prp = grp->getProperty(pname);
     
@@ -112,17 +121,17 @@ std::string Configuration::DisqubeConfiguration::getConfigurationValue(const std
 
 unsigned int Configuration::DisqubeConfiguration::getNumOfQubes()
 {
-    return std::stoi(this->getConfigurationValue("Environment", "NUMBER_OF_QUBES"));
+    return std::stoi(this->getConfigurationValue("Qubes", "NUMBER_OF_QUBES"));
 }
 
 unsigned int Configuration::DisqubeConfiguration::getMaxNumOfQubes()
 {
-    return std::stoi(this->getConfigurationValue("Environment", "MAX_NUM_OF_QUBES"));
+    return std::stoi(this->getConfigurationValue("Qubes", "MAX_NUM_OF_QUBES"));
 }
 
 bool Configuration::DisqubeConfiguration::isDiscoverEnabled()
 {
-    int flag = std::stoi(this->getConfigurationValue("Environment", "DISCOVER"));
+    int flag = std::stoi(this->getConfigurationValue("Qubes", "DISCOVER"));
     return flag == 1;
 }
 
@@ -169,4 +178,15 @@ std::size_t Configuration::DisqubeConfiguration::getTcpMaxNumOfConnections()
 std::size_t Configuration::DisqubeConfiguration::getUdpMaxCapacityQueue()
 {
     return (std::size_t)std::stoi(this->getConfigurationValue("Network", "UDP_CAPACITY_QUEUE"));
+}
+
+bool Configuration::DisqubeConfiguration::getLogOnFile()
+{
+    int value = std::stoi(this->getConfigurationValue("Logging", "LOG_ON_FILE"));
+    return value == 1;
+}
+
+std::string Configuration::DisqubeConfiguration::getLogRootFolder()
+{
+    return this->getConfigurationValue("Logging", "LOG_FOLDER");
 }

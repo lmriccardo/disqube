@@ -8,6 +8,7 @@
 
 #include <CommonLib/Communication/Interface.hpp>
 #include <Configuration/Configuration.hpp>
+#include <Logging/DisqubeLogger.hpp>
 
 using DisqubeConfiguration = Configuration::DisqubeConfiguration;
 using UdpCommunicationInterface_ptr = CommonLib::Communication::UdpCommunicationInterface_ptr;
@@ -29,27 +30,53 @@ namespace Qube
      * 
      * Finally, a cube also contains a message dispatcher that every time dequeue
      * a message from one of the two queues and perform releated operations.
+     * 
+     * A Qube can take up to 2 role: master or slave. A master qube is the one
+     * dispatching the workload between multiple slaves. There can only be one
+     * master while all the others needs to be slave. The main difference between
+     * these two roles is the kind of messages they can receive and send. For
+     * example, a master qube can never receive a job posting message, as well
+     * as a slave qube cannot send job posting requests.
      */
     class QubeInterface
     {
         private:
-            DisqubeConfiguration          _conf;   // General configuration
-            UdpCommunicationInterface_ptr _udpitf; // Udp Communication Interface
-            TcpCommunicationInterface_ptr _tcpitf; // Tcp Communication Interface
+            DisqubeConfiguration          _conf;     // General configuration
+            UdpCommunicationInterface_ptr _udpitf;   // Udp Communication Interface
+            TcpCommunicationInterface_ptr _tcpitf;   // Tcp Communication Interface
+            Logging::DisqubeLogger_ptr    _logger;   // Generic logging class
+            bool                          _isMaster; // Master Qube interface or not.
 
+            // A list of pair (ip, port no) for each node connected.
+            std::vector<std::pair<std::string, unsigned short>> _nodes;
+
+            static unsigned int generateId();
+            
             void initUdpInterface(const std::string& ip);
             void initTcpInterface(const std::string& ip);
+            void logInit();
+            void init();
 
         public:
-            QubeInterface(const std::string& inFile) : _conf(inFile)
+            QubeInterface(bool isMaster, const std::string& inFile) 
+                : _conf(inFile), _isMaster(isMaster)
             {
-                // Create Udp Communication Interface
-                std::string ip = Socket::getInterfaceIp(_conf.getNetworkInterface());
-                initUdpInterface(ip);
+                // Create the logger
+                _logger = std::make_shared<Logging::DisqubeLogger>(
+                    generateId(), _conf.getLogOnFile(), 
+                    _conf.getLogRootFolder());
 
-                // Create Tcp Communication Interface
-                initTcpInterface(ip);
+                // Call the init method
+                init();
             }
+
+            QubeInterface(bool isMaster, const std::string& inFile, Logging::DisqubeLogger_ptr& logger)
+                : _isMaster(isMaster), _conf(inFile), _logger(logger)
+            {
+                init(); // Call the init method
+            }
+
+            bool isMaster();
     };
 }
 

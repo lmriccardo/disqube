@@ -11,6 +11,7 @@
 #include <sstream>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 
 namespace Qube::Logging
 {
@@ -44,6 +45,8 @@ namespace Qube::Logging
             void error(const std::string& msg);
             void jobPosting(const std::string& msg);
     };
+
+    typedef std::shared_ptr<DisqubeLogger> DisqubeLogger_ptr;
 }
 
 #endif

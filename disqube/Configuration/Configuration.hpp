@@ -54,6 +54,10 @@ namespace Configuration
             std::size_t getTcpMaxCapacityQueue();
             std::size_t getTcpMaxNumOfConnections();
             std::size_t getUdpMaxCapacityQueue();
+            
+            // Logging configuration
+            bool getLogOnFile();
+            std::string getLogRootFolder();
     };
 }
 
