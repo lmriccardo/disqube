@@ -43,6 +43,9 @@ namespace Configuration
             unsigned int getNumOfQubes();
             unsigned int getMaxNumOfQubes();
             bool isDiscoverEnabled();
+            std::string getQubesSubnetAddress();
+            std::string getQubesSubnetMask(); 
+            std::string getQubesSubnetGateway();
 
             // Network Configuration Values
             std::string getNetworkInterface();

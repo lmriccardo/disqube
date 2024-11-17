@@ -7,6 +7,7 @@
 #include <string>
 
 #include <CommonLib/Communication/Interface.hpp>
+#include <CommonLib/Communication/Message.hpp>
 #include <Configuration/Configuration.hpp>
 #include <Logging/DisqubeLogger.hpp>
 
@@ -16,6 +17,7 @@ using TcpCommunicationInterface_ptr = CommonLib::Communication::TcpCommunication
 using TcpCommunicationInterface = CommonLib::Communication::TcpCommunicationInterface;
 using UdpCommunicationInterface = CommonLib::Communication::UdpCommunicationInterface;
 using Socket = CommonLib::Communication::Socket;
+using SubnetInfo = CommonLib::Communication::SubnetInfo;
 
 namespace Qube
 {
@@ -31,12 +33,12 @@ namespace Qube
      * Finally, a cube also contains a message dispatcher that every time dequeue
      * a message from one of the two queues and perform releated operations.
      * 
-     * A Qube can take up to 2 role: master or slave. A master qube is the one
-     * dispatching the workload between multiple slaves. There can only be one
-     * master while all the others needs to be slave. The main difference between
+     * A Qube can take up to 2 role: master or worker. A master qube is the one
+     * dispatching the workload between multiple workers. There can only be one
+     * master while all the others needs to be workers. The main difference between
      * these two roles is the kind of messages they can receive and send. For
      * example, a master qube can never receive a job posting message, as well
-     * as a slave qube cannot send job posting requests.
+     * as a worker qube cannot send job posting requests.
      */
     class QubeInterface
     {
@@ -70,13 +72,15 @@ namespace Qube
                 init();
             }
 
-            QubeInterface(bool isMaster, const std::string& inFile, Logging::DisqubeLogger_ptr& logger)
-                : _isMaster(isMaster), _conf(inFile), _logger(logger)
+            QubeInterface(bool isMaster, const std::string& inFile, 
+                Logging::DisqubeLogger_ptr& logger
+            ) : _isMaster(isMaster), _conf(inFile), _logger(logger)
             {
                 init(); // Call the init method
             }
 
             bool isMaster();
+            void qubeDiscovering();
     };
 }
 

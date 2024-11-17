@@ -40,9 +40,9 @@ void Qube::QubeInterface::logInit()
     unsigned short udp_lport = _conf.getUdpListenerPort();
 
     udp_ss << "UDP Communication Interface binded" << std::endl;
-    udp_ss << "\tNETWORK INTERFACE: " << itf << std::endl;
-    udp_ss << "\tSEND PORT: " << udp_sport << std::endl;
-    udp_ss << "\tLISTENING PORT: " << udp_lport;
+    udp_ss << "\tNETWORK INTERFACE: " << itf;
+    udp_ss << " SEND PORT: " << udp_sport;
+    udp_ss << " LISTENING PORT: " << udp_lport;
 
     _logger->info(udp_ss.str());
 
@@ -52,9 +52,9 @@ void Qube::QubeInterface::logInit()
     std::stringstream tcp_ss;
 
     tcp_ss << "TCP Communication Interface binded" << std::endl;
-    tcp_ss << "\tNETWORK INTERFACE: " << itf << std::endl;
-    tcp_ss << "\tSEND PORT: " << tcp_sport << std::endl;
-    tcp_ss << "\tLISTENING PORT: " << tcp_lport;
+    tcp_ss << "\tNETWORK INTERFACE: " << itf;
+    tcp_ss << " SEND PORT: " << tcp_sport;
+    tcp_ss << " LISTENING PORT: " << tcp_lport;
 
     _logger->info(tcp_ss.str());
 }
@@ -75,4 +75,36 @@ void Qube::QubeInterface::init()
 bool Qube::QubeInterface::isMaster()
 {
     return _isMaster;
+}
+
+void Qube::QubeInterface::qubeDiscovering()
+{
+    // Take the subnet configuration of the workers
+    std::string subnetAddr = _conf.getQubesSubnetAddress();
+    std::string subnetMask = _conf.getQubesSubnetMask();
+    std::string subnetGtwy = _conf.getQubesSubnetGateway();
+    
+    // Fill a structure with required informations to perform
+    // the automatic scans of all IP addresses in the network.
+    SubnetInfo info = Socket::getSubnetConfiguration(subnetAddr, subnetMask);
+    unsigned int gatewayNum = Socket::addressStringToNumber(subnetGtwy);
+
+    // Let's perform the discover
+    std::stringstream ss;
+    unsigned int sysNofBits = 32 - info.userNofBits;
+    ss << "Initializing Discover Mode: Subnet " << subnetAddr;
+    ss << "/" << sysNofBits << " Gateway " << subnetGtwy << std::endl;
+    _logger->info(ss.str()); 
+
+    unsigned int addrNum;
+    for (addrNum = info.first; addrNum < info.last + 1; addrNum++)
+    {
+        if (addrNum == gatewayNum) continue; // Skip the gateway address
+        std::string addr_s = Socket::addressNumberToString(addrNum, false);
+
+        // Send the UDP Discover message to the currrent ip address
+        std::string msg = "Discover";
+        CommonLib::Communication::SimpleMessage sm_discover(1, 0, msg);
+        _udpitf->sendTo(addr_s, 12345, sm_discover);
+    }
 }

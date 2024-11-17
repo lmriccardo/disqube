@@ -135,6 +135,21 @@ bool Configuration::DisqubeConfiguration::isDiscoverEnabled()
     return flag == 1;
 }
 
+std::string Configuration::DisqubeConfiguration::getQubesSubnetAddress()
+{
+    return this->getConfigurationValue("Qubes", "SUBNET_ADDRESS");
+}
+
+std::string Configuration::DisqubeConfiguration::getQubesSubnetMask()
+{
+    return this->getConfigurationValue("Qubes", "SUBNET_MASK");
+}
+
+std::string Configuration::DisqubeConfiguration::getQubesSubnetGateway()
+{
+    return this->getConfigurationValue("Qubes", "SUBNET_GATEWAY");
+}
+
 std::string Configuration::DisqubeConfiguration::getNetworkInterface()
 {
     return this->getConfigurationValue("Network", "INTERFACE");
