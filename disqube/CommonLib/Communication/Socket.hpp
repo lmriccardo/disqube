@@ -1,8 +1,6 @@
 #ifndef _SOCKET_HPP
 #define _SOCKET_HPP
 
-#pragma once
-
 #include <iostream>
 #include <sys/socket.h>
 #include <arpa/inet.h>

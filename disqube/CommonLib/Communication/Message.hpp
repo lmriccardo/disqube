@@ -1,8 +1,6 @@
 #ifndef _MESSAGE_HPP
 #define _MESSAGE_HPP
 
-#pragma once
-
 #include <iostream>
 #include <cstring>
 #include <arpa/inet.h>

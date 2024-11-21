@@ -1,0 +1,18 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "disqube debugging",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerServerAddress": "172.30.20.1:1234",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "program": "${workspaceFolder}/build/Main",
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false
+        }
+    ]
+}

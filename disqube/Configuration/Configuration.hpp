@@ -1,8 +1,6 @@
 #ifndef _CONFIGURATION_H
 #define _CONFIGURATION_H
 
-#pragma once
-
 #include <filesystem>
 #include <iostream>
 #include <fstream>

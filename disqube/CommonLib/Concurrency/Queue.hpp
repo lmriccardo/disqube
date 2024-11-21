@@ -1,8 +1,6 @@
 #ifndef _QUEUE_HPP
 #define _QUEUE_HPP
 
-#pragma once
-
 #include <iostream>
 #include <mutex>
 #include <condition_variable>

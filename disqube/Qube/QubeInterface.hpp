@@ -1,11 +1,8 @@
 #ifndef _QUBEINTERFACE_H
 #define _QUBEINTERFACE_H
 
-#pragma once
-
 #include <iostream>
 #include <string>
-
 #include <CommonLib/Communication/Interface.hpp>
 #include <CommonLib/Communication/Message.hpp>
 #include <Configuration/Configuration.hpp>

@@ -1,8 +1,6 @@
 #ifndef _SENDER_HPP
 #define _SENDER_HPP
 
-#pragma once
-
 #include <iostream>
 #include <type_traits>
 #include <CommonLib/Communication/Socket.hpp>

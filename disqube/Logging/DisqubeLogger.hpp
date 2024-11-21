@@ -1,8 +1,6 @@
 #ifndef _DISQUBE_LOGGER_H
 #define _DISQUBE_LOGGER_H
 
-#pragma once
-
 #include <iostream>
 #include <chrono>
 #include <iomanip>

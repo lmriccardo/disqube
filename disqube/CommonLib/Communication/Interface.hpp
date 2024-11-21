@@ -1,8 +1,6 @@
 #ifndef _INTERFACE_H
 #define _INTERFACE_H
 
-#pragma once
-
 #include <CommonLib/Concurrency/Queue.hpp>
 #include <CommonLib/Communication/Message.hpp>
 #include <CommonLib/Communication/Listener.hpp>

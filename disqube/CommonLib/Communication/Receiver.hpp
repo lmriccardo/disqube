@@ -1,8 +1,6 @@
 #ifndef _RECEIVER_HPP
 #define _RECEIVER_HPP
 
-#pragma once
-
 #include <iostream>
 #include <optional>
 #include <CommonLib/Communication/Socket.hpp>

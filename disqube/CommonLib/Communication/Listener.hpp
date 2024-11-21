@@ -1,8 +1,6 @@
 #ifndef _LISTENER_HPP
 #define _LISTENER_HPP
 
-#pragma once
-
 #include <iostream>
 #include <optional>
 #include <algorithm>

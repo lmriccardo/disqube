@@ -1,8 +1,6 @@
 #ifndef _BYTEBUFFER_HPP
 #define _BYTEBUFFER_HPP
 
-#pragma once
-
 #include <iostream>
 #include <vector>
 #include <string>

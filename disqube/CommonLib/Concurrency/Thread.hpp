@@ -1,8 +1,6 @@
 #ifndef _THREAD_HPP
 #define _THREAD_HPP
 
-#pragma once
-
 #include <thread>
 #include <functional>
 #include <string>
