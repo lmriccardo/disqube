@@ -10,6 +10,7 @@ add_executable(comm_test ../test/comm.cpp)
 add_executable(interface_test ../test/interface.cpp)
 add_executable(config_test ../test/config.cpp)
 add_executable(logging_test ../test/logging.cpp)
+add_executable(state_machine_test ../test/state.cpp)
 
 # Linking executables to the distributed libraries
 target_link_libraries(bb_test PRIVATE disqube)
@@ -21,3 +22,4 @@ target_link_libraries(comm_test PRIVATE disqube)
 target_link_libraries(interface_test PRIVATE disqube)
 target_link_libraries(config_test PRIVATE disqube)
 target_link_libraries(logging_test PRIVATE disqube)
+target_link_libraries(state_machine_test PRIVATE disqube)

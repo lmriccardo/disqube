@@ -4,12 +4,12 @@ name: disqube-example
 # Service definition
 services:
   qube:
-    image: alpine
+    image: disqube-test
     command: tail -f /dev/null
     networks:
       - qubenet
     volumes:
-      - ../test/pcap:/usr/pcap
+      - ../test/pcap:/usr/disqube/pcap
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN

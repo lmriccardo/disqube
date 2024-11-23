@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <algorithm>
+#include <endian.h>
 
 namespace CommonLib::Communication
 {

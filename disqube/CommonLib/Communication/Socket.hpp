@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <thread>
 #include <math.h>
+#include <sys/select.h>
 
 #define TCPRECONNECTIONS 5
 #define TCPTIMEOUT 1

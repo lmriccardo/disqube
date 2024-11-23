@@ -188,7 +188,7 @@ std::string CommonLib::Communication::Socket::getInterfaceIp(const std::string &
     ioctl(sockfd, SIOCGIFADDR, &ifr);
     close(sockfd);
 
-    u_int32_t _addr_i = ( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr.s_addr;
+    uint32_t _addr_i = ( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr.s_addr;
     return addressNumberToString(_addr_i, true);
 }
 
@@ -202,7 +202,7 @@ std::string CommonLib::Communication::Socket::getBroadcastIp(const std::string& 
     ioctl(sockfd, SIOCGIFBRDADDR, &ifr);
     close(sockfd);
 
-    u_int32_t _addr_i = ( (struct sockaddr_in *)&ifr.ifr_broadaddr )->sin_addr.s_addr;
+    uint32_t _addr_i = ( (struct sockaddr_in *)&ifr.ifr_broadaddr )->sin_addr.s_addr;
     return std::move(addressNumberToString(_addr_i, true));
 }
 
