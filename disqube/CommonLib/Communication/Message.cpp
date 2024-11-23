@@ -3,17 +3,22 @@
 void CommonLib::Communication::Message::encode_(Message& msg)
 {
     msg.clear();
-    msg.put(static_cast<unsigned char>(msg.getMessageType()));
-    msg.put(msg.getMessageId());
     msg.put(msg.getMessageCounter());
+    msg.put(msg.getMessageId());
+    msg.put(static_cast<unsigned char>(msg.getMessageType()));
+    msg.put(static_cast<unsigned char>(msg.getMessageSubType()));
+    msg.spare();
+    msg.spare();
 }
 
 void CommonLib::Communication::Message::decode_(Message &msg)
 {
     msg.position(0);
-    msg.setMessageType(static_cast<MessageType>(msg.get()));
-    msg.setMessageId(msg.get());
     msg.setMessageCounter(msg.getShort());
+    msg.setMessageId(msg.get());
+    msg.setMessageType(static_cast<MessageType>(msg.get()));
+    msg.setMessageSubType(static_cast<MessageSubType>(msg.get()));
+    msg.position(msg.position() + 2);
 }
 
 const unsigned short CommonLib::Communication::Message::getMessageCounter() const
@@ -21,14 +26,24 @@ const unsigned short CommonLib::Communication::Message::getMessageCounter() cons
     return _counter;
 }
 
-const unsigned char CommonLib::Communication::Message::getMessageId() const
+const unsigned short CommonLib::Communication::Message::getMessageId() const
 {
     return _id;
 }
 
 const CommonLib::Communication::MessageType CommonLib::Communication::Message::getMessageType() const
 {
-    return MessageType();
+    return _type;
+}
+
+const CommonLib::Communication::MessageSubType CommonLib::Communication::Message::getMessageSubType() const
+{
+    return _subType;
+}
+
+const unsigned int CommonLib::Communication::Message::getMessageTypeId() const
+{
+    return (static_cast<unsigned int>(_type) << 8) + static_cast<unsigned int>(_subType);
 }
 
 void CommonLib::Communication::Message::setMessageType(const MessageType &type)
@@ -36,7 +51,12 @@ void CommonLib::Communication::Message::setMessageType(const MessageType &type)
     _type = type;
 }
 
-void CommonLib::Communication::Message::setMessageId(const unsigned char id)
+void CommonLib::Communication::Message::setMessageSubType(const MessageSubType &subType)
+{
+    _subType = subType;
+}
+
+void CommonLib::Communication::Message::setMessageId(const unsigned short id)
 {
     _id = id;
 }
@@ -71,4 +91,108 @@ void CommonLib::Communication::SimpleMessage::decode()
     getBuffer((unsigned char*)msg, buffSize);
 
     _msg = msg;
+}
+
+void CommonLib::Communication::DiscoverHelloMessage::setUdpPort(const unsigned short udpPort)
+{
+    _udpPort = udpPort;
+}
+
+void CommonLib::Communication::DiscoverHelloMessage::setTcpPort(const unsigned short tcpPort)
+{
+    _tcpPort = tcpPort;
+}
+
+unsigned short CommonLib::Communication::DiscoverHelloMessage::getUdpPort() const
+{
+    return _udpPort;
+}
+
+unsigned short CommonLib::Communication::DiscoverHelloMessage::getTcpPort() const
+{
+    return _tcpPort;
+}
+
+void CommonLib::Communication::DiscoverHelloMessage::encode()
+{
+    Message::encode_(*this);
+    put(_udpPort);
+    put(_tcpPort);
+}
+
+void CommonLib::Communication::DiscoverHelloMessage::decode()
+{
+    Message::decode_(*this);
+    setUdpPort(getShort());
+    setTcpPort(getShort());
+}
+
+void CommonLib::Communication::DiscoverResponseMessage::setUdpPort(const unsigned short udpPort)
+{
+    _udpPort = udpPort;
+}
+
+void CommonLib::Communication::DiscoverResponseMessage::setTcpPort(const unsigned short tcpPort)
+{
+    _tcpPort = tcpPort;
+}
+
+void CommonLib::Communication::DiscoverResponseMessage::setAvailableMemory(const uint8_t memory)
+{
+    _memory = memory;
+}
+
+void CommonLib::Communication::DiscoverResponseMessage::setNumberOfCpus(const uint8_t ncpus)
+{
+    _ncpus = ncpus;
+}
+
+void CommonLib::Communication::DiscoverResponseMessage::setTaskQueueDimension(unsigned short qdim)
+{
+    _qdim = qdim;
+}
+
+unsigned short CommonLib::Communication::DiscoverResponseMessage::getUdpPort() const
+{
+    return _udpPort;
+}
+
+unsigned short CommonLib::Communication::DiscoverResponseMessage::getTcpPort() const
+{
+    return _tcpPort;
+}
+
+uint8_t CommonLib::Communication::DiscoverResponseMessage::getAvailableMemory() const
+{
+    return _memory;
+}
+
+uint8_t CommonLib::Communication::DiscoverResponseMessage::getNumberOfCpus() const
+{
+    return _ncpus;
+}
+
+unsigned short CommonLib::Communication::DiscoverResponseMessage::getTaskQueueDimension() const
+{
+    return _qdim;
+}
+
+void CommonLib::Communication::DiscoverResponseMessage::encode()
+{
+    Message::encode_(*this);
+    put(_udpPort);
+    put(_tcpPort);
+    put(_memory);
+    put(_ncpus);
+    put(_qdim);
+}
+
+void CommonLib::Communication::DiscoverResponseMessage::decode()
+{
+    Message::decode_(*this);
+    setUdpPort(getShort());
+    setTcpPort(getShort());
+    setAvailableMemory(get());
+    setNumberOfCpus(get());
+    setTaskQueueDimension(getShort());
 }

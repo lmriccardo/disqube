@@ -97,14 +97,17 @@ void Qube::QubeInterface::qubeDiscovering()
     _logger->info(ss.str()); 
 
     unsigned int addrNum;
+    unsigned short messageId = 0;
     for (addrNum = info.first; addrNum < info.last + 1; addrNum++)
     {
         if (addrNum == gatewayNum) continue; // Skip the gateway address
         std::string addr_s = Socket::addressNumberToString(addrNum, false);
 
         // Send the UDP Discover message to the currrent ip address
-        std::string msg = "Discover";
-        CommonLib::Communication::SimpleMessage sm_discover(1, 0, msg);
-        _udpitf->sendTo(addr_s, 12345, sm_discover);
+        CommonLib::Communication::DiscoverHelloMessage m_discover(messageId++, 0);
+        m_discover.setUdpPort(_udpitf->getListenerPort());
+        m_discover.setTcpPort(_tcpitf->getListenerPort());
+        
+        _udpitf->sendTo(addr_s, 12345, m_discover);
     }
 }

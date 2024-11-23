@@ -86,6 +86,11 @@ void CommonLib::Communication::ByteBuffer::clear()
     position(0);
 }
 
+void CommonLib::Communication::ByteBuffer::spare()
+{
+    put(static_cast<unsigned char>(0.0));
+}
+
 void CommonLib::Communication::ByteBuffer::put(const unsigned char _data)
 {
     ByteBuffer::checkForOutOfBound(_position, ByteBuffer::BYTE_SIZE, _capacity, "ByteBuffer::put");

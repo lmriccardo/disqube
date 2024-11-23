@@ -10,30 +10,41 @@ namespace CommonLib::Communication
 {
     const unsigned short MAX_MESSAGE_CAPACITY = 65535;
     
-    enum MessageType
+    enum class MessageType
     {
-        SIMPLE = 1
+        SIMPLE,  // Used only for simple string message
+        DISCOVER // Used for the discover protocol
+    };
+
+    enum class MessageSubType
+    {
+        SIMPLE            = 0,
+        DISCOVER_HELLO    = 1, // A message usually sent from the master to workers
+        DISCOVER_RESPONSE = 2  // A response message for the HELLO
     };
 
     class Message : public ByteBuffer
     {
         protected:
             MessageType    _type;
+            MessageSubType _subType;
             unsigned short _counter;
-            unsigned char  _id;
+            unsigned short _id;
 
-            const static std::size_t NUM_HEAD_BYTES = 4;
+            const static std::size_t NUM_HEAD_BYTES = 8;
 
             static void encode_(Message& msg);
             static void decode_(Message& msg);
 
         public:
-            Message(const MessageType& type, uint8_t id, uint16_t counter, 
-                    const std::size_t nofBytes) \
-                : ByteBuffer(nofBytes), _type(type), _counter(counter), _id(id) {}
+            Message(const MessageType& type, const MessageSubType& subType, 
+                    uint16_t id, uint16_t counter, const std::size_t nofBytes) \
+                : ByteBuffer(nofBytes), _type(type), _subType(subType),
+                  _counter(counter), _id(id) {}
 
-            Message(const MessageType& type, uint8_t id, uint16_t counter) \
-                : Message(type, id, counter, MAX_MESSAGE_CAPACITY) {}
+            Message(const MessageType& type, const MessageSubType& subType, uint16_t id, 
+                    uint16_t counter) : Message(
+                        type, subType, id, counter, MAX_MESSAGE_CAPACITY) {}
 
             Message(const unsigned char* buffer, const std::size_t nofBytes) \
                 : ByteBuffer(nofBytes)
@@ -47,11 +58,14 @@ namespace CommonLib::Communication
             ~Message() = default;
 
             const unsigned short getMessageCounter() const;
-            const unsigned char getMessageId() const;
+            const unsigned short getMessageId() const;
             const MessageType getMessageType() const;
+            const MessageSubType getMessageSubType() const;
+            const unsigned int getMessageTypeId() const;
 
             void setMessageType(const MessageType& type);
-            void setMessageId(const unsigned char id);
+            void setMessageSubType(const MessageSubType& subType);
+            void setMessageId(const unsigned short id);
             void setMessageCounter(const unsigned short counter);
 
             virtual void encode() = 0;
@@ -72,9 +86,9 @@ namespace CommonLib::Communication
             std::string _msg;
         
         public:
-            SimpleMessage(const uint8_t id, const uint16_t counter, std::string& msg) \
+            SimpleMessage(const uint16_t id, const uint16_t counter, std::string& msg) \
                 : Message(
-                    MessageType::SIMPLE, id, counter, 
+                    MessageType::SIMPLE, MessageSubType::SIMPLE, id, counter, 
                     NUM_HEAD_BYTES + msg.size()
                 ), _msg(msg) {};
 
@@ -92,6 +106,71 @@ namespace CommonLib::Communication
             ~SimpleMessage() = default;
 
             const std::string& getMessage() const;
+            void encode();
+            void decode();
+    };
+
+    class DiscoverHelloMessage : public Message
+    {
+        private:
+            unsigned short _udpPort;
+            unsigned short _tcpPort;
+
+            static const std::size_t MSG_NUM_BYTES = 4;
+
+        public:
+            DiscoverHelloMessage(const uint16_t id, const uint16_t counter)
+                : Message(MessageType::DISCOVER, MessageSubType::DISCOVER_HELLO,
+                    id, counter, NUM_HEAD_BYTES + MSG_NUM_BYTES) {};
+
+            DiscoverHelloMessage(const ByteBuffer& buffer) : Message(buffer) 
+            {
+                decode();
+            }
+
+            void setUdpPort(const unsigned short udpPort);
+            void setTcpPort(const unsigned short tcpPort);
+            
+            unsigned short getUdpPort() const;
+            unsigned short getTcpPort() const;
+
+            void encode();
+            void decode();
+    };
+
+    class DiscoverResponseMessage : public Message
+    {
+        private:
+            unsigned short _udpPort;
+            unsigned short _tcpPort;
+            uint8_t        _memory;
+            uint8_t 	   _ncpus;
+            unsigned short _qdim;
+
+            static const std::size_t MSG_NUM_BYTES = 8;
+
+        public:
+            DiscoverResponseMessage(const uint16_t id, const uint16_t counter)
+                : Message(MessageType::DISCOVER, MessageSubType::DISCOVER_RESPONSE,
+                    id, counter, NUM_HEAD_BYTES + MSG_NUM_BYTES) {};
+
+            DiscoverResponseMessage(const ByteBuffer& buffer) : Message(buffer) 
+            {
+                decode();
+            }
+
+            void setUdpPort(const unsigned short udpPort);
+            void setTcpPort(const unsigned short tcpPort);
+            void setAvailableMemory(const uint8_t memory);
+            void setNumberOfCpus(const uint8_t ncpus);
+            void setTaskQueueDimension(unsigned short qdim);
+            
+            unsigned short getUdpPort() const;
+            unsigned short getTcpPort() const;
+            uint8_t getAvailableMemory() const;
+            uint8_t getNumberOfCpus() const;
+            unsigned short getTaskQueueDimension() const;
+
             void encode();
             void decode();
     };

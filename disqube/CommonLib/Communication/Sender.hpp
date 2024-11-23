@@ -14,6 +14,7 @@ namespace CommonLib::Communication
             virtual void sendTo(const std::string& ip, const unsigned short port, unsigned char* buff, const std::size_t n) = 0;
             virtual void closeSocket() = 0;
             virtual bool isSocketClosed() = 0;
+            virtual const Socket& getSocket() = 0;
             void sendTo(const std::string& ip, const unsigned short port, Message& msg);
     };
 
@@ -50,6 +51,11 @@ namespace CommonLib::Communication
             void setTimeout(long int sec, long int usec);
             void setTimeout(long int sec);
             void disconnect();
+
+            const TcpSocket& getSocket() override
+            {
+                return _socket;
+            }
             
     };
 
@@ -81,6 +87,11 @@ namespace CommonLib::Communication
             bool isSocketClosed()
             {
                 return _socket.isClosed();
+            }
+
+            const UdpSocket& getSocket() override 
+            {
+                return _socket;
             }
     };
 }

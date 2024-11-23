@@ -64,6 +64,7 @@ namespace CommonLib::Communication
             bool isEmpty() const;
             void clear();
 
+            void spare();
             void put(const unsigned char _data);
             void put(const unsigned short _data);
             void put(const unsigned int _data);

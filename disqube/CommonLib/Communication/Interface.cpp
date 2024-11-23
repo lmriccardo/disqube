@@ -28,6 +28,16 @@ void CommonLib::Communication::CommunicationInterface::senderStop()
     this->_sender->closeSocket();
 }
 
+unsigned short CommonLib::Communication::CommunicationInterface::getSenderPort() const
+{
+    return _sender->getSocket().getPortNumber();
+}
+
+unsigned short CommonLib::Communication::CommunicationInterface::getListenerPort() const
+{
+    return _listener->getSocket().getPortNumber();
+}
+
 CommonLib::Communication::UdpCommunicationInterface::UdpCommunicationInterface(
     const std::string &ip, unsigned short sport, unsigned short lport, const std::size_t capacity
 ) : CommunicationInterface(capacity)

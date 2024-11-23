@@ -8,6 +8,8 @@ services:
     command: tail -f /dev/null
     networks:
       - qubenet
+    volumes:
+      - ../test/pcap:/usr/pcap
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN

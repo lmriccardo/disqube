@@ -40,6 +40,12 @@ namespace CommonLib::Communication
 
             // Stop the sender socket
             void senderStop();
+
+            // Returns the sending port
+            unsigned short getSenderPort() const;
+
+            // Returns the listener port
+            unsigned short getListenerPort() const;
     };
 
     class UdpCommunicationInterface : public CommunicationInterface
