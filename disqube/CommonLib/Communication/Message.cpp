@@ -15,7 +15,7 @@ void CommonLib::Communication::Message::decode_(Message &msg)
 {
     msg.position(0);
     msg.setMessageCounter(msg.getShort());
-    msg.setMessageId(msg.get());
+    msg.setMessageId(msg.getShort());
     msg.setMessageType(static_cast<MessageType>(msg.get()));
     msg.setMessageSubType(static_cast<MessageSubType>(msg.get()));
     msg.position(msg.position() + 2);
