@@ -34,6 +34,36 @@ void Qube::Qube::initStateMachine()
     _stateMachine = std::make_shared<StateMachine>(s0);
 }
 
+int Qube::Qube::checkDiagnosticResults()
+{
+    this->_itf->interfaceDiagnosticCheck();
+
+    DiagnosticCheckResult* udpresult = this->_itf->getUdpDiagnosticResult();
+    DiagnosticCheckResult* tcpresult = this->_itf->getTcpDiagnosticResult();
+
+    int result = 0;
+    
+    // First let's check for UDP results
+    if (udpresult->listener_exitOnError)
+    {
+        result = result + UDP_LISTENER_RUNNING;
+        this->_udperror = udpresult->listener_sockError;
+    }
+
+    if (udpresult->sender_sockError) result = result + UDP_SENDER_ERROR;
+
+    // Then we need to check for TCP results
+    if (tcpresult->listener_exitOnError)
+    {
+        result = result + TCP_LISTENER_RUNNING;
+        this->_tcperror = tcpresult->listener_sockError;
+    }
+
+    if (tcpresult->sender_sockError) result = result + TCP_SENDER_ERROR;
+
+    return result;
+}
+
 void Qube::Qube::init()
 {
     // Load the configuration
@@ -50,6 +80,23 @@ void Qube::Qube::init()
 
     // Initialize the Qube interface
     _itf = std::make_shared<QubeInterface>(_conf, _logger);
+    _itf->start();
+    
+    // Perform a first diagnostic check
+    int result = this->checkDiagnosticResults();
+    if (result == 0)
+    {
+        // If there are no errors we can continue to next step
+        this->_logger->info("The Qube Is Ready to proceed.");
+        this->_qubeData.itfReady = true;
+        this->_qubeData.shutdown = true;
+        return;
+    }
+}
+
+void Qube::Qube::shutdown()
+{
+    this->_itf->stop();
 }
 
 void Qube::Qube::setMasterFlag(bool value)
@@ -76,7 +123,9 @@ void Qube::Qube::run()
             case StateType::QUBE_INIT:
                 init();
                 break;
-            
+            case StateType::QUBE_SHUTDOWN:
+                shutdown();
+                break;
             default:
                 break;
         }

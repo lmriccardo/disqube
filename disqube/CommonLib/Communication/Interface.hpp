@@ -6,6 +6,14 @@
 #include <CommonLib/Communication/Listener.hpp>
 #include <CommonLib/Communication/Sender.hpp>
 
+#undef  UDP_LISTENER_RUNNING
+#undef  TCP_LISTENER_RUNNING
+#undef  UDP_SENDER_ERRORS
+#undef  TCP_SENDER_ERRORS
+#define UDP_LISTENER_RUNNING 10
+#define TCP_LISTENER_RUNNING 20
+#define UDP_SENDER_ERROR     30
+#define TCP_SENDER_ERROR     40
 
 namespace CommonLib::Communication
 {

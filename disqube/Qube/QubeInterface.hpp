@@ -16,6 +16,7 @@ using TcpCommunicationInterface = CommonLib::Communication::TcpCommunicationInte
 using UdpCommunicationInterface = CommonLib::Communication::UdpCommunicationInterface;
 using Socket = CommonLib::Communication::Socket;
 using SubnetInfo = CommonLib::Communication::SubnetInfo;
+using DiagnosticCheckResult = CommonLib::Communication::DiagnosticCheckResult;
 
 namespace Qube
 {
@@ -63,8 +64,14 @@ namespace Qube
                 init(); // Call the init method
             }
 
-            bool isMaster();
-            void qubeDiscovering();
+            bool isMaster(); // Check if the current interface is for a Master Qube
+            void start(); // Starts both UDP and TCP communication interface
+            void stop(); // Stops both UDP and TCP communication interface
+            void qubeDiscovering(); // Performs the Discover protocol
+            void interfaceDiagnosticCheck(); // Performs a check on TCP and UDP Interface
+
+            DiagnosticCheckResult* getUdpDiagnosticResult(); // Obtain result from UDP
+            DiagnosticCheckResult* getTcpDiagnosticResult(); // Obtain result from TCP
     };
 
     typedef std::shared_ptr<QubeInterface> QubeInterface_ptr;

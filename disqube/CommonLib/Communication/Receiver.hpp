@@ -32,6 +32,7 @@ namespace CommonLib::Communication
 
             // Returns true if the receiver has stopped, False otherwise.
             bool hasStopped() const;
+            void stop();
     };
 
     class UdpReceiver : public Receiver

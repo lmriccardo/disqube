@@ -80,8 +80,6 @@ void test_tcp_interface()
     // First we need to close the connections between the two interfaces
     // Then we can stop and join the listener, otherwise there would be
     // a blocking factors that blocks the seconds interface to be closed.
-    tcp_int_2.senderStop();
-    tcp_int_1.senderStop();
     tcp_int_2.close();
     tcp_int_1.close();
     

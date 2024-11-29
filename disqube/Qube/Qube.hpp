@@ -29,18 +29,22 @@ namespace Qube
             bool                     _shutdownFlag; // A shutdown flag
             std::string              _confFile;     // The configuration file path
             bool                     _isMaster;     // If the current qube is a master or not
+            int                      _udperror;     // Udp Errors after diagnostic check
+            int                      _tcperror;     // Tcp Error after diagnostic check
 
             static unsigned int generateId(); // Generates the ID for logging
             void initStateMachine(); // Initialize the state machine
+            int checkDiagnosticResults(); // Check diagnostic results for TCP and UDP interfaces
 
             void init(); // The initial method (INIT State of State Machine)
+            void shutdown(); // The shutdown state
 
         public:
             Qube(const std::string& confFile) : _confFile(confFile), _shutdownFlag(false) {};
 
-            void setMasterFlag(bool value);
-            bool isMaster() const;
-            bool isDiscoverEnabledAtStartup() const;
+            void setMasterFlag(bool value); // Set the current qube as master or client
+            bool isMaster() const; // Check if the current qube is a master
+            bool isDiscoverEnabledAtStartup() const; // Flag indicating discovering protocol actuation
             void run(); // The main method of the Qube
     };
 };

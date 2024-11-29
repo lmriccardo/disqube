@@ -64,6 +64,18 @@ bool Qube::QubeInterface::isMaster()
     return _isMaster;
 }
 
+void Qube::QubeInterface::start()
+{
+    this->_udpitf->start();
+    this->_tcpitf->start();
+}
+
+void Qube::QubeInterface::stop()
+{
+    this->_udpitf->close();
+    this->_tcpitf->close();
+}
+
 void Qube::QubeInterface::qubeDiscovering()
 {
     // Take the subnet configuration of the workers
@@ -97,4 +109,21 @@ void Qube::QubeInterface::qubeDiscovering()
         
         _udpitf->sendTo(addr_s, 12345, m_discover);
     }
+}
+
+void Qube::QubeInterface::interfaceDiagnosticCheck()
+{
+    // Performs the diagnostic check on both interfaces
+    this->_udpitf->performDiagnosticCheck();
+    this->_tcpitf->performDiagnosticCheck();
+}
+
+DiagnosticCheckResult *Qube::QubeInterface::getUdpDiagnosticResult()
+{
+    return this->_udpitf->getDiagnosticResult();
+}
+
+DiagnosticCheckResult *Qube::QubeInterface::getTcpDiagnosticResult()
+{
+    return this->_tcpitf->getDiagnosticResult();
 }

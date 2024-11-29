@@ -14,6 +14,11 @@ bool CommonLib::Communication::Receiver::hasStopped() const
     return _stopped;
 }
 
+void CommonLib::Communication::Receiver::stop()
+{
+    this->_stopped = true;
+}
+
 void CommonLib::Communication::UdpReceiver::receive()
 {
     // If the sigstop is set to True then return
@@ -54,7 +59,7 @@ void CommonLib::Communication::TcpReceiver::receive()
     struct SocketInfo si = {true, false, false, false, false, false, 0};
 
     while (!this->_stopped)
-    {   
+    {
         // Get the socket info for the client socket
         Socket::getSocketInfo(_clientfd, &si);
 
@@ -73,7 +78,7 @@ void CommonLib::Communication::TcpReceiver::receive()
             break;
         }
 
-        if (si.timeout_ela && !si.ready_to_read) continue;
+        if (si.timeout_ela || !si.ready_to_read) continue;
 
         // Before going on we need to check if during the poll
         // an external call to stop the received have been made

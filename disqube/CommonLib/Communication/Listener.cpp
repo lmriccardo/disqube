@@ -208,6 +208,7 @@ void CommonLib::Communication::TcpListener::run()
     {
         if (!(recv == nullptr))
         {
+            recv->stop();
             recv->join();
         }
     }
