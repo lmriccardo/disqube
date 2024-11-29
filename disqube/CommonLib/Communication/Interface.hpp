@@ -46,6 +46,9 @@ namespace CommonLib::Communication
 
             // Returns the listener port
             unsigned short getListenerPort() const;
+
+            // Performs diagnostic check on the socket of listener and sender
+            bool performDiagnosticCheck();
     };
 
     class UdpCommunicationInterface : public CommunicationInterface

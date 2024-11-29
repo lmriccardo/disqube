@@ -101,7 +101,7 @@ void Configuration::DisqubeConfiguration::addGroup(PropertyGroup_ptr group)
     _groups.insert(std::make_pair(name, group));
 }
 
-std::string Configuration::DisqubeConfiguration::getConfigurationValue(const std::string &gname, const std::string &pname)
+std::string Configuration::DisqubeConfiguration::getConfigurationValue(const std::string &gname, const std::string &pname) const
 {
     auto it = _groups.find(gname);
     if (it == _groups.end()) 
@@ -119,89 +119,89 @@ std::string Configuration::DisqubeConfiguration::getConfigurationValue(const std
     return prp->getPropertyValue();
 }
 
-unsigned int Configuration::DisqubeConfiguration::getNumOfQubes()
+unsigned int Configuration::DisqubeConfiguration::getNumOfQubes() const
 {
     return std::stoi(this->getConfigurationValue("Qubes", "NUMBER_OF_QUBES"));
 }
 
-unsigned int Configuration::DisqubeConfiguration::getMaxNumOfQubes()
+unsigned int Configuration::DisqubeConfiguration::getMaxNumOfQubes() const
 {
     return std::stoi(this->getConfigurationValue("Qubes", "MAX_NUM_OF_QUBES"));
 }
 
-bool Configuration::DisqubeConfiguration::isDiscoverEnabled()
+bool Configuration::DisqubeConfiguration::isDiscoverEnabled() const
 {
     int flag = std::stoi(this->getConfigurationValue("Qubes", "DISCOVER"));
     return flag == 1;
 }
 
-std::string Configuration::DisqubeConfiguration::getQubesSubnetAddress()
+std::string Configuration::DisqubeConfiguration::getQubesSubnetAddress() const
 {
     return this->getConfigurationValue("Qubes", "SUBNET_ADDRESS");
 }
 
-std::string Configuration::DisqubeConfiguration::getQubesSubnetMask()
+std::string Configuration::DisqubeConfiguration::getQubesSubnetMask() const
 {
     return this->getConfigurationValue("Qubes", "SUBNET_MASK");
 }
 
-std::string Configuration::DisqubeConfiguration::getQubesSubnetGateway()
+std::string Configuration::DisqubeConfiguration::getQubesSubnetGateway() const
 {
     return this->getConfigurationValue("Qubes", "SUBNET_GATEWAY");
 }
 
-std::string Configuration::DisqubeConfiguration::getNetworkInterface()
+std::string Configuration::DisqubeConfiguration::getNetworkInterface() const
 {
     return this->getConfigurationValue("Network", "INTERFACE");
 }
 
-unsigned short Configuration::DisqubeConfiguration::getTcpSenderPort()
+unsigned short Configuration::DisqubeConfiguration::getTcpSenderPort() const
 {
     return (unsigned short)std::stoi(this->getConfigurationValue("Network", "TCP_SEND_PORT"));
 }
 
-unsigned short Configuration::DisqubeConfiguration::getTcpListenerPort()
+unsigned short Configuration::DisqubeConfiguration::getTcpListenerPort() const
 {
     return (unsigned short)std::stoi(this->getConfigurationValue("Network", "TCP_LISTEN_PORT"));
 }
 
-unsigned short Configuration::DisqubeConfiguration::getUdpSenderPort()
+unsigned short Configuration::DisqubeConfiguration::getUdpSenderPort() const
 {
     return (unsigned short)std::stoi(this->getConfigurationValue("Network", "UDP_SEND_PORT"));
 }
 
-unsigned short Configuration::DisqubeConfiguration::getUdpListenerPort()
+unsigned short Configuration::DisqubeConfiguration::getUdpListenerPort() const
 {
     return (unsigned short)std::stoi(this->getConfigurationValue("Network", "UDP_LISTEN_PORT"));
 }
 
-unsigned short Configuration::DisqubeConfiguration::getBroadcastPort()
+unsigned short Configuration::DisqubeConfiguration::getBroadcastPort() const
 {
     return (unsigned short)std::stoi(this->getConfigurationValue("Network", "BROADCAST_PORT"));
 }
 
-std::size_t Configuration::DisqubeConfiguration::getTcpMaxCapacityQueue()
+std::size_t Configuration::DisqubeConfiguration::getTcpMaxCapacityQueue() const
 {
     return (std::size_t)std::stoi(this->getConfigurationValue("Network", "TCP_CAPACITY_QUEUE"));
 }
 
-std::size_t Configuration::DisqubeConfiguration::getTcpMaxNumOfConnections()
+std::size_t Configuration::DisqubeConfiguration::getTcpMaxNumOfConnections() const
 {
     return (std::size_t)std::stoi(this->getConfigurationValue("Network", "TCP_MAX_NOF_CONNECTION"));
 }
 
-std::size_t Configuration::DisqubeConfiguration::getUdpMaxCapacityQueue()
+std::size_t Configuration::DisqubeConfiguration::getUdpMaxCapacityQueue() const
 {
     return (std::size_t)std::stoi(this->getConfigurationValue("Network", "UDP_CAPACITY_QUEUE"));
 }
 
-bool Configuration::DisqubeConfiguration::getLogOnFile()
+bool Configuration::DisqubeConfiguration::getLogOnFile() const
 {
     int value = std::stoi(this->getConfigurationValue("Logging", "LOG_ON_FILE"));
     return value == 1;
 }
 
-std::string Configuration::DisqubeConfiguration::getLogRootFolder()
+std::string Configuration::DisqubeConfiguration::getLogRootFolder() const
 {
     return this->getConfigurationValue("Logging", "LOG_FOLDER");
 }

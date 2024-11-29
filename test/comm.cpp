@@ -38,9 +38,10 @@ void test_udp()
         assert_eq<int>(errno, 0);
         std::cout << "Passed" << std::endl;
 
-        std::cout << "[TEST 3/4] Sending a SimpleMessage to external using UdpSender on localhost: ";
+        std::cout << "[TEST 3/4] Sending a SimpleMessage to external using UdpSender on localhost (Should fail): ";
         udp_s.sendTo(Socket::getHostnameIp("google.com"), 80, sm);
-        assert_eq<int>(errno, EINVAL);
+        assert_eq<int>(true, udp_s.getSocket().getSocketInfo()->socket_error);
+        assert_eq<int>(EINVAL, udp_s.getSocket().getSocketInfo()->error);
         std::cout << "Passed" << std::endl;
 
         std::cout << "[TEST 4/4] Sending a SimpleMessage to localhost and check reception: ";

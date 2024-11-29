@@ -26,7 +26,7 @@ void CommonLib::Communication::UdpListener::run()
     while (!this->_sigstop)
     {
         // Receive any incoming messages from the Udp Socket
-        // This action is blocking, with no timeout associated
+        // This actions is blocking for the poll timeout (1 sec)
         _recv.receive();
 
         // After received we need to check whether the receiver
@@ -89,6 +89,8 @@ int CommonLib::Communication::TcpListener::acceptIncoming(struct sockaddr_in& cl
     // Set the timeout duration
     struct timeval timeout = _socket.getTimeout();
 
+    std::cout << "File descriptor used in select: " << fd << std::endl;
+
     // Wait for the listening socket to become readable (incoming connection)
     int select_result;
     if ((select_result = select(fd + 1, &readfds, nullptr, nullptr, &timeout)) <= 0)
@@ -107,7 +109,6 @@ int CommonLib::Communication::TcpListener::acceptIncoming(struct sockaddr_in& cl
     int client_socket;
     if ((client_socket = accept(fd, (struct sockaddr*)&client, &clientlen)) < 0)
     {
-
         std::cerr << "[TcpListener::acceptIncoming] Error when accepting: ";
         std::cerr << std::strerror(errno) << "->" << client_socket << std::endl;
         return -1;

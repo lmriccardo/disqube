@@ -22,17 +22,15 @@ namespace CommonLib::Communication
             Queue_ptr<struct ReceivedData> _queue;
             bool                           _stopped;
 
+            static struct ReceivedData handleReceivedMessages(unsigned char* buff, 
+                const std::size_t n, struct sockaddr_in* src);
+                
         public:
             Receiver(Queue_ptr<struct ReceivedData> queue) : _queue(queue), _stopped(false) {};
             
             virtual void receive() = 0;
-            
-            struct ReceivedData handleReceivedMessages(
-                unsigned char* buff, const std::size_t n, struct sockaddr_in* src);
 
-            /**
-             * Returns true if the receiver has stopped, False otherwise.
-             */
+            // Returns true if the receiver has stopped, False otherwise.
             bool hasStopped() const;
     };
 

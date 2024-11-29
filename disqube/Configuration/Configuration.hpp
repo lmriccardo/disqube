@@ -25,9 +25,12 @@ namespace Configuration
                 const std::string& line, const std::string& delimiter);
             
             std::string getConfigurationValue(
-                const std::string& gname, const std::string& pname);
+                const std::string& gname, const std::string& pname) const;
 
         public:
+            // Default constructor
+            DisqubeConfiguration() {};
+
             DisqubeConfiguration(const std::string& iniFile)
             {
                 readIniFile(iniFile);
@@ -38,28 +41,30 @@ namespace Configuration
             void addGroup(PropertyGroup_ptr group);
 
             // Environment Configuration Values
-            unsigned int getNumOfQubes();
-            unsigned int getMaxNumOfQubes();
-            bool isDiscoverEnabled();
-            std::string getQubesSubnetAddress();
-            std::string getQubesSubnetMask(); 
-            std::string getQubesSubnetGateway();
+            unsigned int getNumOfQubes() const;
+            unsigned int getMaxNumOfQubes() const;
+            bool isDiscoverEnabled() const;
+            std::string getQubesSubnetAddress() const;
+            std::string getQubesSubnetMask() const; 
+            std::string getQubesSubnetGateway() const;
 
             // Network Configuration Values
-            std::string getNetworkInterface();
-            unsigned short getTcpSenderPort();
-            unsigned short getTcpListenerPort();
-            unsigned short getUdpSenderPort();
-            unsigned short getUdpListenerPort();
-            unsigned short getBroadcastPort();
-            std::size_t getTcpMaxCapacityQueue();
-            std::size_t getTcpMaxNumOfConnections();
-            std::size_t getUdpMaxCapacityQueue();
+            std::string getNetworkInterface() const;
+            unsigned short getTcpSenderPort() const;
+            unsigned short getTcpListenerPort() const;
+            unsigned short getUdpSenderPort() const;
+            unsigned short getUdpListenerPort() const;
+            unsigned short getBroadcastPort() const;
+            std::size_t getTcpMaxCapacityQueue() const;
+            std::size_t getTcpMaxNumOfConnections() const;
+            std::size_t getUdpMaxCapacityQueue() const;
             
             // Logging configuration
-            bool getLogOnFile();
-            std::string getLogRootFolder();
+            bool getLogOnFile() const;
+            std::string getLogRootFolder() const;
     };
+
+    typedef std::shared_ptr<DisqubeConfiguration> DisqubeConfiguration_ptr;
 }
 
 #endif

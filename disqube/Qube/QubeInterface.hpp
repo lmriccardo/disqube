@@ -3,12 +3,13 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
 #include <CommonLib/Communication/Interface.hpp>
 #include <CommonLib/Communication/Message.hpp>
 #include <Configuration/Configuration.hpp>
 #include <Logging/DisqubeLogger.hpp>
 
-using DisqubeConfiguration = Configuration::DisqubeConfiguration;
+using DisqubeConfiguration_ptr = Configuration::DisqubeConfiguration_ptr;
 using UdpCommunicationInterface_ptr = CommonLib::Communication::UdpCommunicationInterface_ptr;
 using TcpCommunicationInterface_ptr = CommonLib::Communication::TcpCommunicationInterface_ptr;
 using TcpCommunicationInterface = CommonLib::Communication::TcpCommunicationInterface;
@@ -40,7 +41,7 @@ namespace Qube
     class QubeInterface
     {
         private:
-            DisqubeConfiguration          _conf;     // General configuration
+            DisqubeConfiguration_ptr      _conf;     // General configuration
             UdpCommunicationInterface_ptr _udpitf;   // Udp Communication Interface
             TcpCommunicationInterface_ptr _tcpitf;   // Tcp Communication Interface
             Logging::DisqubeLogger_ptr    _logger;   // Generic logging class
@@ -48,8 +49,6 @@ namespace Qube
 
             // A list of pair (ip, port no) for each node connected.
             std::vector<std::pair<std::string, unsigned short>> _nodes;
-
-            static unsigned int generateId();
             
             void initUdpInterface(const std::string& ip);
             void initTcpInterface(const std::string& ip);
@@ -57,28 +56,18 @@ namespace Qube
             void init();
 
         public:
-            QubeInterface(bool isMaster, const std::string& inFile) 
-                : _conf(inFile), _isMaster(isMaster)
+            QubeInterface(DisqubeConfiguration_ptr conf, Logging::DisqubeLogger_ptr& logger)
+                : _logger(logger)
             {
-                // Create the logger
-                _logger = std::make_shared<Logging::DisqubeLogger>(
-                    generateId(), _conf.getLogOnFile(), 
-                    _conf.getLogRootFolder());
-
-                // Call the init method
-                init();
-            }
-
-            QubeInterface(bool isMaster, const std::string& inFile, 
-                Logging::DisqubeLogger_ptr& logger
-            ) : _isMaster(isMaster), _conf(inFile), _logger(logger)
-            {
+                _conf = conf;
                 init(); // Call the init method
             }
 
             bool isMaster();
             void qubeDiscovering();
     };
+
+    typedef std::shared_ptr<QubeInterface> QubeInterface_ptr;
 }
 
 #endif

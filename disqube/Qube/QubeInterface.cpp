@@ -1,30 +1,17 @@
 #include "QubeInterface.hpp"
 
-unsigned int Qube::QubeInterface::generateId()
-{
-    auto now = std::chrono::system_clock::now();
-    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-    std::tm* localTime = std::localtime(&currentTime);
-
-    // Take hours, minutes and seconds and returns the id
-    int hour = localTime->tm_hour;
-    int minutes = localTime->tm_min;
-    int seconds = localTime->tm_sec;
-    return (unsigned int)((hour << 16) + (minutes << 8) + seconds);
-}
-
 void Qube::QubeInterface::initUdpInterface(const std::string &ip)
 {
     _udpitf = std::make_shared<UdpCommunicationInterface>(
-        ip, _conf.getUdpSenderPort(), _conf.getUdpListenerPort(), _conf.getUdpMaxCapacityQueue()
+        ip, _conf->getUdpSenderPort(), _conf->getUdpListenerPort(), _conf->getUdpMaxCapacityQueue()
     );
 }
 
 void Qube::QubeInterface::initTcpInterface(const std::string &ip)
 {
     _tcpitf = std::make_shared<TcpCommunicationInterface>(
-        ip, _conf.getTcpSenderPort(), _conf.getTcpListenerPort(),
-        _conf.getTcpMaxNumOfConnections(), _conf.getTcpMaxCapacityQueue(), 200, 0
+        ip, _conf->getTcpSenderPort(), _conf->getTcpListenerPort(),
+        _conf->getTcpMaxNumOfConnections(), _conf->getTcpMaxCapacityQueue(), 200, 0
     );
 }
 
@@ -35,9 +22,9 @@ void Qube::QubeInterface::logInit()
     
     // Logging UDP interface creation and initialization
     std::stringstream udp_ss;
-    std::string itf = _conf.getNetworkInterface();
-    unsigned short udp_sport = _conf.getUdpSenderPort();
-    unsigned short udp_lport = _conf.getUdpListenerPort();
+    std::string itf = _conf->getNetworkInterface();
+    unsigned short udp_sport = _conf->getUdpSenderPort();
+    unsigned short udp_lport = _conf->getUdpListenerPort();
 
     udp_ss << "UDP Communication Interface binded" << std::endl;
     udp_ss << "\tNETWORK INTERFACE: " << itf;
@@ -47,8 +34,8 @@ void Qube::QubeInterface::logInit()
     _logger->info(udp_ss.str());
 
     // Logging TCP interface creation and initialization
-    unsigned short tcp_sport = _conf.getTcpSenderPort();
-    unsigned short tcp_lport = _conf.getTcpListenerPort();
+    unsigned short tcp_sport = _conf->getTcpSenderPort();
+    unsigned short tcp_lport = _conf->getTcpListenerPort();
     std::stringstream tcp_ss;
 
     tcp_ss << "TCP Communication Interface binded" << std::endl;
@@ -61,12 +48,12 @@ void Qube::QubeInterface::logInit()
 
 void Qube::QubeInterface::init()
 {
-    std::string ip = Socket::getInterfaceIp(_conf.getNetworkInterface());
+    std::string ip = Socket::getInterfaceIp(_conf->getNetworkInterface());
     initUdpInterface(ip); // Create Udp Communication Interface
     initTcpInterface(ip); // Create Tcp Communication Interface
 
     // Reserve space for the nodes vector
-    _nodes.reserve(_conf.getMaxNumOfQubes());
+    _nodes.reserve(_conf->getMaxNumOfQubes());
 
     // Logging initialization
     logInit();
@@ -80,9 +67,9 @@ bool Qube::QubeInterface::isMaster()
 void Qube::QubeInterface::qubeDiscovering()
 {
     // Take the subnet configuration of the workers
-    std::string subnetAddr = _conf.getQubesSubnetAddress();
-    std::string subnetMask = _conf.getQubesSubnetMask();
-    std::string subnetGtwy = _conf.getQubesSubnetGateway();
+    std::string subnetAddr = _conf->getQubesSubnetAddress();
+    std::string subnetMask = _conf->getQubesSubnetMask();
+    std::string subnetGtwy = _conf->getQubesSubnetGateway();
     
     // Fill a structure with required informations to perform
     // the automatic scans of all IP addresses in the network.

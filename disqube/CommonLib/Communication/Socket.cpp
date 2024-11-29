@@ -2,7 +2,7 @@
 
 CommonLib::Communication::Socket::Socket(
     const std::string &ip, const unsigned short port, const SocketType &type
-) : _ip(ip), _port(port), _type(type), _closed(false)
+) : _ip(ip), _port(port), _type(type)
 {
     // First construct the socket and get the file descriptor
     struct protoent *prot;
@@ -62,6 +62,11 @@ CommonLib::Communication::Socket::Socket(
         closeSocket();
         throw std::runtime_error("[Socket binding] Binding failed.");
     }
+
+    _info = {true, false, false, false, false, 0};
+
+    // Performs some checks at socket creation
+    updateSocketInfo();
 }
 
 CommonLib::Communication::Socket::Socket(const Socket &other)
@@ -69,26 +74,26 @@ CommonLib::Communication::Socket::Socket(const Socket &other)
     _ip = other._ip;
     _port = other._port;
     _type = other._type;
-    _closed = other._closed;
+    _info = other._info;
     _src = other._src;
     _fd = other._fd;
 }
 
 bool CommonLib::Communication::Socket::isSocketValid() const
 {
-    return fcntl(_fd, F_GETFD) != -1 || errno != EBADF;
+    return _info.active;
 }
 
 void CommonLib::Communication::Socket::closeSocket()
 {
     shutdown(_fd, SHUT_RDWR);
     int ret = close(_fd);
-    _closed = true;
+    _info.active = false;
 }
 
 bool CommonLib::Communication::Socket::isClosed() const
 {
-    return _closed;
+    return !_info.active;
 }
 
 const std::string &CommonLib::Communication::Socket::getIpAddress() const
@@ -109,6 +114,22 @@ int CommonLib::Communication::Socket::getSocketFileDescriptor() const
 const sockaddr_in &CommonLib::Communication::Socket::getSource() const
 {
     return _src;
+}
+
+void CommonLib::Communication::Socket::updateSocketInfo()
+{
+    Socket::performDiagnosticCheck(this->_fd, &this->_info);
+}
+
+CommonLib::Communication::SocketInfo *CommonLib::Communication::Socket::getSocketInfo()
+{
+    return &_info;
+}
+
+void CommonLib::Communication::Socket::flushSocketError()
+{
+    _info.socket_error = false;
+    _info.error = 0;
 }
 
 std::string CommonLib::Communication::Socket::addressNumberToString(unsigned int addr, const bool be)
@@ -176,6 +197,49 @@ struct CommonLib::Communication::SubnetInfo CommonLib::Communication::Socket::ge
     si.userNofBits = user_bits;
 
     return si;
+}
+
+void CommonLib::Communication::Socket::performDiagnosticCheck(int sockfd, SocketInfo *sockinfo)
+{
+    // Construct the pollfd struct for the pool system call
+    struct pollfd pfd;
+    pfd.fd = sockfd;
+    pfd.events = POLLIN | POLLOUT | POLLERR | POLLNVAL;
+
+    int pollResult = poll(&pfd, 1, 1000); // Wait for any events to happen
+
+    // If the timeout has expired than do nothing
+    if (pollResult == 0)
+    {
+        sockinfo->timeout_ela = true;
+        return;
+    }
+
+    // Otherwise, check for any errors and get the right one
+    if (pollResult < 0 || (pfd.revents & POLLERR) || (pfd.revents & POLLNVAL))
+    {
+        sockinfo->socket_error = true;
+        socklen_t errlen = sizeof(sockinfo->error);
+        int result = getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &sockinfo->error, &errlen);
+        
+        // Check for any errors regarding getsockopt. If there is any
+        // then the sockinfo->error field is not set.
+        if (result < 0) sockinfo->error = errno;
+        sockinfo->active = false;
+        return;
+    }
+
+    // Otherwise, check for readability
+    if (pfd.revents & POLLIN)
+    {
+        sockinfo->ready_to_read = true;
+    }
+
+    // Finally, checks for writability
+    if (pfd.revents & POLLOUT)
+    {
+        sockinfo->ready_to_write = true;
+    }
 }
 
 std::string CommonLib::Communication::Socket::getInterfaceIp(const std::string &interface)
@@ -293,6 +357,16 @@ bool CommonLib::Communication::TcpSocket::connectOne(struct sockaddr_in* dst)
 
 void CommonLib::Communication::TcpSocket::connectTo(const std::string &ip, const unsigned short port)
 {
+    // Check of socket sanity
+    updateSocketInfo();
+
+    // Check that the socket is still active, with no errors
+    if (!_info.active || _info.socket_error)
+    {
+        _connected = false;
+        return;
+    }
+
     memset(&_dst, 0, sizeof(_dst));
     _dst.sin_family = AF_INET;
     _dst.sin_port = htons(port);
@@ -315,7 +389,7 @@ void CommonLib::Communication::TcpSocket::connectTo(const std::string &ip, const
     _connected = false;
 }
 
-std::string CommonLib::Communication::TcpSocket::getDestinatioIp() const
+std::string CommonLib::Communication::TcpSocket::getDestinationIp() const
 {
     char addr[INET_ADDRSTRLEN];
     memset(addr, 0, sizeof(addr));
@@ -333,4 +407,45 @@ unsigned short CommonLib::Communication::TcpSocket::getDestinationPort() const
 const sockaddr_in &CommonLib::Communication::TcpSocket::getDestination() const
 {
     return _dst;
+}
+
+bool CommonLib::Communication::TcpSocket::sendTo(const std::string &ip, const unsigned short port, unsigned char *buff, const std::size_t n)
+{
+    flushSocketError(); // Before sending we might want to flush all errors
+    connectTo(ip, port); // Try connection with the endpoint
+
+    // Check if the connection was successfull, then send
+    if (!isConnected()) return false;
+    if (send(_fd, buff, n, 0) < 0)
+    {
+        _info.socket_error = true;
+        _info.error = errno;
+        std::cerr << "[TcpSender] Sent was unsuccessful: " << std::strerror(errno) << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool CommonLib::Communication::UdpSocket::send(unsigned char *buff, const std::size_t n, sockaddr_in *dst)
+{
+    // flushSocketError(); // Before sending we might want to flush all errors
+    // updateSocketInfo(); // Socket sanity check
+
+    // // Check for the socket being active, ready to write and with no errors
+    // if (!(_info.active && _info.ready_to_write) || _info.socket_error)
+    // {
+    //     return false;   
+    // }
+
+    // Otherwise we can send and check for possible errors
+    if (sendto(_fd, buff, n, 0, (struct sockaddr *)dst, sizeof(*dst)) < 0)
+    {
+        _info.socket_error = true;
+        _info.error = errno;
+        std::cerr << "[UdpSender] Sent was unsuccessful: " << std::strerror(errno) << std::endl;
+        return false;
+    }
+
+    return true;
 }

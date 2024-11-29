@@ -9,7 +9,7 @@ bool CommonLib::Communication::CommunicationInterface::isClosed()
 void CommonLib::Communication::CommunicationInterface::sendTo(const std::string &ip, unsigned short port, Message& msg)
 {
     // Sends a message using the sender socket
-    _sender->sendTo(ip, port, msg);
+    bool result = _sender->sendTo(ip, port, msg);
 }
 
 CommonLib::Communication::ReceivedData CommonLib::Communication::CommunicationInterface::getReceivedElement()
@@ -36,6 +36,11 @@ unsigned short CommonLib::Communication::CommunicationInterface::getSenderPort()
 unsigned short CommonLib::Communication::CommunicationInterface::getListenerPort() const
 {
     return _listener->getSocket().getPortNumber();
+}
+
+bool CommonLib::Communication::CommunicationInterface::performDiagnosticCheck()
+{
+    return true;
 }
 
 CommonLib::Communication::UdpCommunicationInterface::UdpCommunicationInterface(

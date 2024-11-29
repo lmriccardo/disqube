@@ -87,7 +87,7 @@ void CommonLib::Communication::TcpReceiver::receive()
         // Otherwise, we have received something and needs to convert it
         auto result = this->handleReceivedMessages((unsigned char*)buffer, nofBytes, _client);
 
-        // Otherwise, push the received message into the queue
+        // Push the received message into the queue
         this->_queue->push(result);
     }
 }

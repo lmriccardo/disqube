@@ -6,6 +6,7 @@ using Socket = CommonLib::Communication::Socket;
 using UdpSocket = CommonLib::Communication::UdpSocket;
 using TcpSocket = CommonLib::Communication::TcpSocket;
 using SocketType = CommonLib::Communication::SocketType;
+using SocketInfo = CommonLib::Communication::SocketInfo;
 
 using namespace Test;
 
@@ -16,6 +17,12 @@ void test_udp()
     try
     {
         UdpSocket udpsock("127.0.0.1", 1234);
+        assert_eq<bool>(true, udpsock.isSocketValid());
+
+        SocketInfo* info = udpsock.getSocketInfo();
+        assert_eq<bool>(true, info->ready_to_write);
+        assert_eq<bool>(false, info->socket_error);
+        
         std::cout << "Passed" << std::endl;
     }
     catch(const std::runtime_error& e)
@@ -33,9 +40,15 @@ void test_tcp()
     try
     {
         TcpSocket tcpsock(Socket::getInterfaceIp("eth0"), 1234);
+        assert_eq<bool>(true, tcpsock.isSocketValid());
+
+        SocketInfo* info = tcpsock.getSocketInfo();
+        assert_eq<bool>(false, info->socket_error);
 
         std::string dstIp = Socket::getHostnameIp("github.com");
         tcpsock.connectTo(dstIp, 443);
+        tcpsock.updateSocketInfo();
+        assert_eq<bool>(false, info->socket_error);
 
         if (!tcpsock.isConnected())
         {
@@ -45,6 +58,10 @@ void test_tcp()
 
         std::cout << "Passed" << std::endl;
         tcpsock.closeSocket();
+        tcpsock.updateSocketInfo();
+        assert_eq<bool>(true, info->socket_error);
+        assert_eq<int>(EBADF, info->error);
+        assert_eq<bool>(false, tcpsock.isSocketValid());
     }
     catch(const std::runtime_error& e)
     {

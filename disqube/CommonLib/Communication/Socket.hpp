@@ -15,6 +15,7 @@
 #include <thread>
 #include <math.h>
 #include <sys/select.h>
+#include <poll.h>
 
 #define TCPRECONNECTIONS 5
 #define TCPTIMEOUT 1
@@ -25,7 +26,8 @@ namespace CommonLib::Communication
     {
         UDP,
         TCP,
-        RAW
+        RAW,
+        UNIX
     };
 
     struct SubnetInfo
@@ -38,15 +40,25 @@ namespace CommonLib::Communication
         unsigned int nofUsable;      // The total number of usable address
     };
 
+    struct SocketInfo
+    {
+        bool active;         // If the socket is still active
+        bool ready_to_read;  // If the socket is ready to read data
+        bool ready_to_write; // If the socket can write data
+        bool socket_error;   // If there is any error regarding the socket
+        bool timeout_ela;    // The timeout has elapsed
+        int  error;          // The actual error (if socket_error is true, -1 otherwise)
+    };
+
     class Socket
     {
         protected:
             std::string        _ip;     // The Ip address of the Socket
             unsigned short     _port;   // The port of the Socket
             struct sockaddr_in _src;    // The structure used when creating the socket
+            struct SocketInfo  _info;   // Some info about the socket (errors, alive, etc .)
             int                _fd;     // Socket file descriptor
             SocketType         _type;   // The type of the socket (UDP, TCP)
-            bool               _closed; // Flag indicating whether the socket is closed or not
 
         public:
             /**
@@ -71,6 +83,9 @@ namespace CommonLib::Communication
             unsigned short getPortNumber() const;
             int getSocketFileDescriptor() const;
             const struct sockaddr_in& getSource() const;
+            void updateSocketInfo();
+            struct SocketInfo* getSocketInfo();
+            void flushSocketError();
 
             static std::string addressNumberToString(unsigned int addr, const bool be);
             static unsigned int addressStringToNumber(const std::string& addr);
@@ -78,6 +93,7 @@ namespace CommonLib::Communication
             static std::string getInterfaceIp(const std::string& interface);
             static std::string getBroadcastIp(const std::string& interface);
             static struct SubnetInfo getSubnetConfiguration(const std::string& addr, const std::string& mask);
+            static void performDiagnosticCheck(int sockfd, struct SocketInfo* sockinfo);
     };
 
     class UdpSocket : public Socket
@@ -87,6 +103,8 @@ namespace CommonLib::Communication
                 : Socket(ip, port, SocketType::UDP) {};
 
             UdpSocket(const UdpSocket& other) : Socket(other) {};
+
+            bool send(unsigned char* buff, const std::size_t n, struct sockaddr_in* dst);
     };
 
     class TcpSocket : public Socket
@@ -130,9 +148,12 @@ namespace CommonLib::Communication
             bool isConnected() const;
             void disconnect();
             void connectTo(const std::string& ip, const unsigned short port);
-            std::string getDestinatioIp() const;
+            std::string getDestinationIp() const;
             unsigned short getDestinationPort() const;
             const struct sockaddr_in& getDestination() const;
+            
+            bool sendTo(const std::string &ip, const unsigned short port, 
+                unsigned char *buff, const std::size_t n);
     };
 }
 
