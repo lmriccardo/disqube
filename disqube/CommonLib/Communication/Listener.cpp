@@ -25,9 +25,27 @@ void CommonLib::Communication::UdpListener::run()
     // Loop until the stop signal becomes true
     while (!this->_sigstop)
     {
+        // Update the socket info and check if there are incoming messages
+        this->_socket.updateSocketInfo();
+        struct SocketInfo* si = this->_socket.getSocketInfo();
+
+        // Check for errors
+        if (!si->active && si->socket_error)
+        {
+            this->stop();
+            break;
+        }
+
+        // Check for timeout or no messages arrived
+        if (si->timeout_ela || !si->ready_to_read) continue;
+
         // Receive any incoming messages from the Udp Socket
         // This actions is blocking for the poll timeout (1 sec)
         _recv.receive();
+
+        // Before going on we need to check if during the poll
+        // an external call to stop the received have been made
+        if (!this->isRunning()) break;
 
         // After received we need to check whether the receiver
         // has received a stop message
@@ -42,6 +60,17 @@ void CommonLib::Communication::UdpListener::run()
 const CommonLib::Communication::UdpSocket &CommonLib::Communication::UdpListener::getSocket()
 {
     return _socket;
+}
+
+bool CommonLib::Communication::UdpListener::hasStoppedWithErrors()
+{
+    struct SocketInfo* si = this->_socket.getSocketInfo();
+    return si->socket_error && (si->error != 0);
+}
+
+int CommonLib::Communication::UdpListener::getSocketError()
+{
+    return this->_socket.getSocketInfo()->error;
 }
 
 int CommonLib::Communication::TcpListener::handleReceivers()
@@ -78,34 +107,7 @@ int CommonLib::Communication::TcpListener::handleReceivers()
 
 int CommonLib::Communication::TcpListener::acceptIncoming(struct sockaddr_in& client, socklen_t clientlen)
 {
-    // Get the socket file descriptor
-    int fd = _socket.getSocketFileDescriptor();
-
-    // Create the sets of readable sockets
-    fd_set readfds;
-    FD_ZERO(&readfds);
-    FD_SET(fd, &readfds);
-
-    // Set the timeout duration
-    struct timeval timeout = _socket.getTimeout();
-
-    std::cout << "File descriptor used in select: " << fd << std::endl;
-
-    // Wait for the listening socket to become readable (incoming connection)
-    int select_result;
-    if ((select_result = select(fd + 1, &readfds, nullptr, nullptr, &timeout)) <= 0)
-    {
-        if (select_result == 0) return -1;
-        // Returns -1, meaning that either there was an error or the
-        // timeout expired when waiting for incoming connections
-        std::cerr << "[TcpListener::acceptIncoming] Error when selecting: ";
-        std::cerr << std::strerror(errno) << std::endl;
-        return -1;
-    }
-
-    // If we reach here, there is an incoming connection, proceed to accept it
-    if (!FD_ISSET(fd, &readfds)) return -1;
-   
+    int fd = this->_socket.getSocketFileDescriptor();
     int client_socket;
     if ((client_socket = accept(fd, (struct sockaddr*)&client, &clientlen)) < 0)
     {
@@ -134,6 +136,11 @@ void CommonLib::Communication::TcpListener::run()
         throw std::runtime_error("[TcpListener::listenFrom] Failed listening");
     }
 
+    struct SocketInfo* si;
+    struct sockaddr_in client;
+    int client_socket;
+    socklen_t clientlen;
+
     // Loop until the listener is stopped. Differently from the Udp Listener
     // the TCP listener accepts client connections and creates, for each new 
     // connections, a receiver thread.
@@ -149,21 +156,36 @@ void CommonLib::Communication::TcpListener::run()
             continue;
         }
 
-        // Check if the file descritor is still valid
-        if (!_socket.isSocketValid()) break;
+        this->_socket.updateSocketInfo();
+        si = this->_socket.getSocketInfo();
+
+        // Check for any errors
+        if (!si->active && si->socket_error)
+        {
+            this->stop();
+            break;
+        }
+
+        if (si->timeout_ela || !si->ready_to_read) continue;
+
+        // Before going on we need to check if during the poll
+        // an external call to stop the received have been made
+        if (!this->isRunning()) break;
 
         // Otherwise, wait for a connection
-        struct sockaddr_in client;
         memset(&client, 0, sizeof(client));
-        socklen_t clientlen = sizeof(client);
-        int client_socket;
+        clientlen = sizeof(client);
 
 #ifdef DEBUG_MODE
         std::cout << "Start Accepting" << std::endl;
 #endif
 
         // Accept incoming connections and save the source informations
-        if ((client_socket = acceptIncoming(client, clientlen)) < 0) continue;
+        if ((client_socket = acceptIncoming(client, clientlen)) < 0)
+        {
+            si->ready_to_read = false;
+            continue;
+        }
 
 #ifdef DEBUG_MODE
         std::cout << "Accepted Connection of: " << Socket::addressNumberToString(client.sin_addr.s_addr, true);
@@ -175,8 +197,9 @@ void CommonLib::Communication::TcpListener::run()
 
         // Start the receiver
         _recvs.at(voidpos)->start();
-
         _clientIdx++;
+
+        si->ready_to_read = false;
     }
 
     // Once this thread has stopped we need to join all 
@@ -203,4 +226,15 @@ void CommonLib::Communication::TcpListener::setTimeout(long int sec)
 const CommonLib::Communication::TcpSocket &CommonLib::Communication::TcpListener::getSocket()
 {
     return _socket;
+}
+
+bool CommonLib::Communication::TcpListener::hasStoppedWithErrors()
+{
+    struct SocketInfo* si = this->_socket.getSocketInfo();
+    return si->socket_error && (si->error != 0);
+}
+
+int CommonLib::Communication::TcpListener::getSocketError()
+{
+    return this->_socket.getSocketInfo()->error;
 }

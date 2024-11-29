@@ -16,6 +16,9 @@ bool CommonLib::Communication::Receiver::hasStopped() const
 
 void CommonLib::Communication::UdpReceiver::receive()
 {
+    // If the sigstop is set to True then return
+    if (this->_stopped) return;
+
     // Creates the buffer that will receives the data and initialize it to 0
     char buffer[RECVBUFFSIZE];
     memset(buffer, 0, sizeof(buffer));
@@ -36,20 +39,9 @@ void CommonLib::Communication::UdpReceiver::receive()
         return;
     }
 
-    // We need to check whether the current receiver must be stopped
-    // or not. When 0 bytes are received, like TCP, the receiver stop.
-    if (nofBytes == 0)
-    {
-        this->_stopped = true;
-        return;
-    }
-
     // Otherwise we need the user-defined handleReceivedMessages function to
     // convert, in some way, the received message and put it in the queue.
     auto result = this->handleReceivedMessages((unsigned char*)buffer, nofBytes, &src);
-
-    // If the sigstop is set to True then return
-    if (this->_stopped) return;
 
     // Otherwise push the data into the queue
     this->_queue->push(result);
@@ -57,12 +49,38 @@ void CommonLib::Communication::UdpReceiver::receive()
 
 void CommonLib::Communication::TcpReceiver::receive()
 {
+    char buffer[RECVBUFFSIZE];
+    ssize_t nofBytes;
+    struct SocketInfo si = {true, false, false, false, false, false, 0};
+
     while (!this->_stopped)
-    {
+    {   
+        // Get the socket info for the client socket
+        Socket::getSocketInfo(_clientfd, &si);
+
+        // Check for any possible errors
+        if (!si.active && si.socket_error)
+        {
+            std::cerr << strerror(si.error) << std::endl;
+            break;
+        }
+
+        // Check for connection closed
+        if (si.connecition_cld)
+        {
+            std::cout << "Connection closed on client socket ";
+            std::cout << _clientfd << std::endl;
+            break;
+        }
+
+        if (si.timeout_ela && !si.ready_to_read) continue;
+
+        // Before going on we need to check if during the poll
+        // an external call to stop the received have been made
+        if (this->hasStopped()) break;
+
         // Initialize the buffer for receiving the data from the socket
-        char buffer[RECVBUFFSIZE];
         memset(buffer, 0, sizeof(buffer));
-        ssize_t nofBytes;
 
         // Receives the data from the socket. If there was an error when receiving
         // we need to print the error message and continue with the reception.
@@ -78,11 +96,7 @@ void CommonLib::Communication::TcpReceiver::receive()
 
         // In the other case, if the number of received bytes is equal
         // to 0, this means that the client disconnected
-        if (nofBytes == 1 || nofBytes == 0)
-        {
-            this->_stopped = true;
-            break;
-        }
+        if (nofBytes == 1 || nofBytes == 0) break;
 
         // Otherwise, we have received something and needs to convert it
         auto result = this->handleReceivedMessages((unsigned char*)buffer, nofBytes, _client);
@@ -90,6 +104,11 @@ void CommonLib::Communication::TcpReceiver::receive()
         // Push the received message into the queue
         this->_queue->push(result);
     }
+
+    this->_stopped = true;
+    
+    // Close the connection with the client
+    // close(_clientfd);
 }
 
 void CommonLib::Communication::TcpReceiver::run()

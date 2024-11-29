@@ -50,10 +50,10 @@ void test_udp()
 
         udp_s.sendTo(LOCALHOST, LISTENER_PORT, sm);
         assert_eq<int>(errno, 0);
-        udp_s.sendTo(LOCALHOST, LISTENER_PORT, (unsigned char*)"", 0);
-        assert_eq<int>(errno, 0);
-
+        
+        udp_l.stop();
         udp_l.join();
+        
         ReceivedData e = udp_l.getQueue()->pop();
         SimpleMessage sm_((*e.data));
         assert_eq<std::string>(sm_.getMessage(), "Ciao");

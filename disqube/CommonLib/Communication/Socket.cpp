@@ -63,8 +63,6 @@ CommonLib::Communication::Socket::Socket(
         throw std::runtime_error("[Socket binding] Binding failed.");
     }
 
-    _info = {true, false, false, false, false, 0};
-
     // Performs some checks at socket creation
     updateSocketInfo();
 }
@@ -118,7 +116,7 @@ const sockaddr_in &CommonLib::Communication::Socket::getSource() const
 
 void CommonLib::Communication::Socket::updateSocketInfo()
 {
-    Socket::performDiagnosticCheck(this->_fd, &this->_info);
+    Socket::getSocketInfo(this->_fd, &this->_info);
 }
 
 CommonLib::Communication::SocketInfo *CommonLib::Communication::Socket::getSocketInfo()
@@ -199,12 +197,15 @@ struct CommonLib::Communication::SubnetInfo CommonLib::Communication::Socket::ge
     return si;
 }
 
-void CommonLib::Communication::Socket::performDiagnosticCheck(int sockfd, SocketInfo *sockinfo)
+void CommonLib::Communication::Socket::getSocketInfo(int sockfd, SocketInfo *sockinfo)
 {
+    // Before getting the info reset the structure
+    Socket::resetSocketInfo(sockinfo);
+
     // Construct the pollfd struct for the pool system call
     struct pollfd pfd;
     pfd.fd = sockfd;
-    pfd.events = POLLIN | POLLOUT | POLLERR | POLLNVAL;
+    pfd.events = POLLIN | POLLOUT | POLLERR | POLLNVAL | POLLHUP;
 
     int pollResult = poll(&pfd, 1, 1000); // Wait for any events to happen
 
@@ -229,17 +230,25 @@ void CommonLib::Communication::Socket::performDiagnosticCheck(int sockfd, Socket
         return;
     }
 
+    // Otherwise, check for disconnections
+    if (pfd.revents & POLLHUP) sockinfo->connecition_cld = true;
+
     // Otherwise, check for readability
-    if (pfd.revents & POLLIN)
-    {
-        sockinfo->ready_to_read = true;
-    }
+    if (pfd.revents & POLLIN) sockinfo->ready_to_read = true;
 
     // Finally, checks for writability
-    if (pfd.revents & POLLOUT)
-    {
-        sockinfo->ready_to_write = true;
-    }
+    if (pfd.revents & POLLOUT) sockinfo->ready_to_write = true;
+}
+
+void CommonLib::Communication::Socket::resetSocketInfo(SocketInfo *sockinfo)
+{
+    sockinfo->active = true;
+    sockinfo->connecition_cld = false;
+    sockinfo->error = 0;
+    sockinfo->ready_to_read = false;
+    sockinfo->ready_to_write = false;
+    sockinfo->socket_error = false;
+    sockinfo->timeout_ela = false;
 }
 
 std::string CommonLib::Communication::Socket::getInterfaceIp(const std::string &interface)
@@ -411,7 +420,6 @@ const sockaddr_in &CommonLib::Communication::TcpSocket::getDestination() const
 
 bool CommonLib::Communication::TcpSocket::sendTo(const std::string &ip, const unsigned short port, unsigned char *buff, const std::size_t n)
 {
-    flushSocketError(); // Before sending we might want to flush all errors
     connectTo(ip, port); // Try connection with the endpoint
 
     // Check if the connection was successfull, then send
@@ -429,14 +437,13 @@ bool CommonLib::Communication::TcpSocket::sendTo(const std::string &ip, const un
 
 bool CommonLib::Communication::UdpSocket::send(unsigned char *buff, const std::size_t n, sockaddr_in *dst)
 {
-    // flushSocketError(); // Before sending we might want to flush all errors
-    // updateSocketInfo(); // Socket sanity check
+    updateSocketInfo(); // Socket sanity check
 
-    // // Check for the socket being active, ready to write and with no errors
-    // if (!(_info.active && _info.ready_to_write) || _info.socket_error)
-    // {
-    //     return false;   
-    // }
+    // Check for the socket being active, ready to write and with no errors
+    if (!(_info.active && _info.ready_to_write) || _info.socket_error)
+    {
+        return false;   
+    }
 
     // Otherwise we can send and check for possible errors
     if (sendto(_fd, buff, n, 0, (struct sockaddr *)dst, sizeof(*dst)) < 0)

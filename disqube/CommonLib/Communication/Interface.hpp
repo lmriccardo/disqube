@@ -9,14 +9,29 @@
 
 namespace CommonLib::Communication
 {
+    /**
+     * Structure containing the results of the diagnostict check
+     * performed on both the sender and the listener
+     */
+    struct DiagnosticCheckResult
+    {
+        bool listener_exitOnError; // If the listener has exited on error or not
+        int listener_sockError;    // The error field of the listener socket
+        bool listener_isRunning;   // True if the listener is still running, false otherwise
+        int sender_sockError;      // The error field of the sender socket
+    };
+
     class CommunicationInterface
     {
         protected:
             std::shared_ptr<Sender>   _sender;   // A pointer to a sender obeject
             std::shared_ptr<Listener> _listener; // A pointer to a listener object
+            struct DiagnosticCheckResult _check; // Diagnostic check result structure
 
             // A pointer to the shared queue between sender and receiver
             Concurrency::Queue_ptr<ReceivedData> _queue;
+
+            void zeroDiagnosticCheck();
 
         public:
             CommunicationInterface(const std::size_t capacity) {
@@ -48,7 +63,9 @@ namespace CommonLib::Communication
             unsigned short getListenerPort() const;
 
             // Performs diagnostic check on the socket of listener and sender
-            bool performDiagnosticCheck();
+            void performDiagnosticCheck();
+
+            struct DiagnosticCheckResult* getDiagnosticResult();
     };
 
     class UdpCommunicationInterface : public CommunicationInterface

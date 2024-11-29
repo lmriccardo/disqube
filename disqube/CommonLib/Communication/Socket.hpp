@@ -42,12 +42,13 @@ namespace CommonLib::Communication
 
     struct SocketInfo
     {
-        bool active;         // If the socket is still active
-        bool ready_to_read;  // If the socket is ready to read data
-        bool ready_to_write; // If the socket can write data
-        bool socket_error;   // If there is any error regarding the socket
-        bool timeout_ela;    // The timeout has elapsed
-        int  error;          // The actual error (if socket_error is true, -1 otherwise)
+        bool active;          // If the socket is still active
+        bool ready_to_read;   // If the socket is ready to read data
+        bool ready_to_write;  // If the socket can write data
+        bool socket_error;    // If there is any error regarding the socket
+        bool timeout_ela;     // The timeout has elapsed
+        bool connecition_cld; // Connection closed
+        int  error;           // The actual error (if socket_error is true, -1 otherwise)
     };
 
     class Socket
@@ -93,7 +94,8 @@ namespace CommonLib::Communication
             static std::string getInterfaceIp(const std::string& interface);
             static std::string getBroadcastIp(const std::string& interface);
             static struct SubnetInfo getSubnetConfiguration(const std::string& addr, const std::string& mask);
-            static void performDiagnosticCheck(int sockfd, struct SocketInfo* sockinfo);
+            static void getSocketInfo(int sockfd, struct SocketInfo* sockinfo);
+            static void resetSocketInfo(struct SocketInfo* sockinfo);
     };
 
     class UdpSocket : public Socket

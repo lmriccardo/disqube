@@ -52,6 +52,8 @@ namespace CommonLib::Communication
             Queue_ptr<struct ReceivedData> getQueue();
 
             virtual const Socket& getSocket() = 0;
+            virtual bool hasStoppedWithErrors() = 0;
+            virtual int getSocketError() = 0;
     };
 
     class UdpListener : public Listener
@@ -96,6 +98,12 @@ namespace CommonLib::Communication
              * Returns the socket of the UDP Listener
              */
             const UdpSocket& getSocket() override;
+
+            /**
+             * Returns true if the listener has stopped due to socket errors
+             */
+            bool hasStoppedWithErrors() override;
+            int getSocketError() override; // Returns the error in the socket info structure
     };
 
     class TcpListener : public Listener
@@ -144,6 +152,12 @@ namespace CommonLib::Communication
              * Returns the socket of the Tcp Listener
              */
             const TcpSocket& getSocket() override;
+
+            /**
+             * Returns true if the listener has stopped due to socket errors
+             */
+            bool hasStoppedWithErrors() override;
+            int getSocketError() override; // Returns the error in the socket info structure
     };
 }
 

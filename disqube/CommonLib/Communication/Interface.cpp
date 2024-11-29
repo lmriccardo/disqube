@@ -38,9 +38,22 @@ unsigned short CommonLib::Communication::CommunicationInterface::getListenerPort
     return _listener->getSocket().getPortNumber();
 }
 
-bool CommonLib::Communication::CommunicationInterface::performDiagnosticCheck()
+void CommonLib::Communication::CommunicationInterface::performDiagnosticCheck()
 {
-    return true;
+    this->zeroDiagnosticCheck();
+
+    // Fill up the Listener fields
+    this->_check.listener_exitOnError = this->_listener->hasStoppedWithErrors();
+    this->_check.listener_isRunning = this->_listener->isRunning();
+    this->_check.listener_sockError = this->_listener->getSocketError();
+
+    // Fill the Sender fields
+    this->_check.sender_sockError = this->_sender->getSocket().getSocketInfo()->error;
+}
+
+CommonLib::Communication::DiagnosticCheckResult *CommonLib::Communication::CommunicationInterface::getDiagnosticResult()
+{
+    return &this->_check;
 }
 
 CommonLib::Communication::UdpCommunicationInterface::UdpCommunicationInterface(
@@ -55,11 +68,6 @@ void CommonLib::Communication::UdpCommunicationInterface::close()
 {
     // Stop the listener
     this->_listener->stop();
-    
-    // To stop the listening thread we need to send empty message
-    std::string ip = _listener->getSocket().getIpAddress();
-    unsigned short port = _listener->getSocket().getPortNumber();
-    _sender->sendTo(ip, port, (unsigned char*)"", 0);
 
     // First close the sender socket
     if (!this->_sender->isSocketClosed()) this->_sender->closeSocket();
@@ -68,6 +76,14 @@ void CommonLib::Communication::UdpCommunicationInterface::close()
     // thread first needs to be stopped and then to be joined.
     // All listener threads are joinable, no check is needed
     this->_listener->join();
+}
+
+void CommonLib::Communication::CommunicationInterface::zeroDiagnosticCheck()
+{
+    this->_check.listener_exitOnError = false;
+    this->_check.listener_isRunning = true;
+    this->_check.listener_sockError = 0;
+    this->_check.sender_sockError = 0;
 }
 
 CommonLib::Communication::CommunicationInterface::~CommunicationInterface() {}
