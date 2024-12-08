@@ -10,14 +10,14 @@ RUN apk add tcpdump iputils
 
 # Set the working folder and add all dependecies to compile
 WORKDIR /usr/disqube/
-COPY ../conf/ ./conf/
-COPY ../disqube/ ./disqube/
-COPY ../CMakeLists.txt ./CMakeLists.txt
+COPY ./conf/ ./conf/
+COPY ./disqube/ ./disqube/
+COPY ./CMakeLists.txt ./CMakeLists.txt
 
 # Compile the executable
 RUN cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Debug
 RUN cmake --build ./build --target Main
-RUN mv ./build/Main disqube
+RUN mv ./build/Main .
 
 # Remove all the unnecessary folder (cleaning up the environment)
 RUN rm -rf ./disqube CMakeLists.txt ./build

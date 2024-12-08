@@ -7,7 +7,7 @@ void CommonLib::Communication::Message::encode_(Message& msg)
     msg.put(msg.getMessageId());
     msg.put(static_cast<unsigned char>(msg.getMessageType()));
     msg.put(static_cast<unsigned char>(msg.getMessageSubType()));
-    msg.spare();
+    msg.put(msg.getMessageProtoFlags());
     msg.spare();
 }
 
@@ -18,7 +18,8 @@ void CommonLib::Communication::Message::decode_(Message &msg)
     msg.setMessageId(msg.getShort());
     msg.setMessageType(static_cast<MessageType>(msg.get()));
     msg.setMessageSubType(static_cast<MessageSubType>(msg.get()));
-    msg.position(msg.position() + 2);
+    msg.setMessageProtocol(static_cast<MessageProto>(msg.get() >> 6));
+    msg.position(msg.position() + 1);
 }
 
 const unsigned short CommonLib::Communication::Message::getMessageCounter() const
@@ -41,9 +42,19 @@ const CommonLib::Communication::MessageSubType CommonLib::Communication::Message
     return _subType;
 }
 
+const CommonLib::Communication::MessageProto CommonLib::Communication::Message::getMessageProtocol() const
+{
+    return _proto;
+}
+
 const unsigned int CommonLib::Communication::Message::getMessageTypeId() const
 {
     return (static_cast<unsigned int>(_type) << 8) + static_cast<unsigned int>(_subType);
+}
+
+const uint8_t CommonLib::Communication::Message::getMessageProtoFlags() const
+{
+    return _flag;
 }
 
 void CommonLib::Communication::Message::setMessageType(const MessageType &type)
@@ -64,6 +75,12 @@ void CommonLib::Communication::Message::setMessageId(const unsigned short id)
 void CommonLib::Communication::Message::setMessageCounter(const unsigned short counter)
 {
     _counter = counter;
+}
+
+void CommonLib::Communication::Message::setMessageProtocol(const MessageProto &proto)
+{
+    _proto = proto; // Set the message protocol
+    _flag = (static_cast<uint8_t>(_proto) + 1) << 6; // Set the protocol flags
 }
 
 const std::string &CommonLib::Communication::SimpleMessage::getMessage() const

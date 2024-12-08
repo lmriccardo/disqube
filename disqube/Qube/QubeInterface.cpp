@@ -66,22 +66,29 @@ bool Qube::QubeInterface::isMaster()
 
 void Qube::QubeInterface::start()
 {
+    this->_logger->info("Starting UDP Communication Interface");
     this->_udpitf->start();
+
+    this->_logger->info("Starting TCP Communication Interface");
     this->_tcpitf->start();
 }
 
 void Qube::QubeInterface::stop()
 {
+    this->_logger->info("Shutting down UDP Communication Interface");
     this->_udpitf->close();
+
+    this->_logger->info("Shutting down TCP Communication Interface");
     this->_tcpitf->close();
 }
 
 void Qube::QubeInterface::qubeDiscovering()
 {
     // Take the subnet configuration of the workers
-    std::string subnetAddr = _conf->getQubesSubnetAddress();
-    std::string subnetMask = _conf->getQubesSubnetMask();
-    std::string subnetGtwy = _conf->getQubesSubnetGateway();
+    std::string    subnetAddr = _conf->getQubesSubnetAddress();
+    std::string    subnetMask = _conf->getQubesSubnetMask();
+    std::string    subnetGtwy = _conf->getQubesSubnetGateway();
+    unsigned short workerPort = _conf->getQubesWorkerUdpPort();
     
     // Fill a structure with required informations to perform
     // the automatic scans of all IP addresses in the network.
@@ -95,20 +102,24 @@ void Qube::QubeInterface::qubeDiscovering()
     ss << "/" << sysNofBits << " Gateway " << subnetGtwy << std::endl;
     _logger->info(ss.str()); 
 
-    unsigned int addrNum;
     unsigned short messageId = 0;
-    for (addrNum = info.first; addrNum < info.last + 1; addrNum++)
-    {
-        if (addrNum == gatewayNum) continue; // Skip the gateway address
-        std::string addr_s = Socket::addressNumberToString(addrNum, false);
+
+    auto discover_fn = [&](int x) {
+        if (x == gatewayNum) return; // Skip the gateway address
+        std::string addr_s = Socket::addressNumberToString(x, false);
 
         // Send the UDP Discover message to the currrent ip address
         CommonLib::Communication::DiscoverHelloMessage m_discover(messageId++, 0);
         m_discover.setUdpPort(_udpitf->getListenerPort());
         m_discover.setTcpPort(_tcpitf->getListenerPort());
+        m_discover.setMessageProtocol(CommonLib::Communication::MessageProto::UDP);
         
-        _udpitf->sendTo(addr_s, 12345, m_discover);
-    }
+        _udpitf->sendTo(addr_s, workerPort, m_discover);
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    };
+
+    Logging::ProgressBar::display(info.first, info.last + 1, 1, 
+        "Seding Discover Hello Msg", discover_fn);
 }
 
 void Qube::QubeInterface::interfaceDiagnosticCheck()

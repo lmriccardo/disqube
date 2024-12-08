@@ -150,6 +150,11 @@ std::string Configuration::DisqubeConfiguration::getQubesSubnetGateway() const
     return this->getConfigurationValue("Qubes", "SUBNET_GATEWAY");
 }
 
+unsigned short Configuration::DisqubeConfiguration::getQubesWorkerUdpPort() const
+{
+    return (unsigned short)std::stoi(this->getConfigurationValue("Qubes", "WORKER_UDP_PORT"));
+}
+
 std::string Configuration::DisqubeConfiguration::getNetworkInterface() const
 {
     return this->getConfigurationValue("Network", "INTERFACE");

@@ -77,13 +77,19 @@ namespace CommonLib::Concurrency
     inline T Queue<T>::pop()
     {
         std::unique_lock<std::mutex> lock(_mutex);
-        _empty.wait(lock, [this](){ return !this->_queue.empty(); });
+        
+        // Timeout waiting
+        if (_empty.wait_for(lock, std::chrono::milliseconds(250), 
+                [this](){ return !this->_queue.empty(); }))
+        {
+            T element = _queue.front();
+            _queue.pop();
 
-        T element = _queue.front();
-        _queue.pop();
-
-        _full.notify_one();
-        return std::move(element);
+            _full.notify_one();
+            return std::move(element);
+        } else {
+            throw std::runtime_error("Event: timeout");
+        }
     }
 
     template <typename T> using Queue_ptr = std::shared_ptr<Queue<T>>;

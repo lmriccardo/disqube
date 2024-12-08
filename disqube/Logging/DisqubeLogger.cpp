@@ -65,6 +65,25 @@ void Qube::Logging::DisqubeLogger::jobPosting(const std::string &msg)
     log(msg, LoggingType::JOB_POSTING);
 }
 
+std::string Qube::Logging::DisqubeLogger::colorize(const std::string &word, LoggingType lvl, bool onFile)
+{
+    if (onFile) return word; // On file we should not use colors
+
+    switch (lvl)
+    {
+        case LoggingType::INFO:
+            return GREEN + word + NOCOLO;
+        case LoggingType::WARNING:
+            return YELLOW + word + NOCOLO;
+        case LoggingType::ERROR:
+            return RED + word + NOCOLO;
+        case LoggingType::JOB_POSTING:
+            return CYAN + word + NOCOLO;
+    }
+
+    return word;
+}
+
 void Qube::Logging::DisqubeLogger::log(const std::string &msg, LoggingType lvl)
 {
     std::string level = DisqubeLogger::levels.at(lvl); // Take the level string
@@ -79,9 +98,19 @@ void Qube::Logging::DisqubeLogger::log(const std::string &msg, LoggingType lvl)
     
     // Generate the logging message
     std::stringstream ss;
-    ss << "(" << level << ") <Disqube-" << _Id << "> ";
-    ss << std::put_time(std::localtime(&currentTime), "[%Y-%m-%d %H:%M:%S]");
-    ss << " " << msg;
+
+    // When logging on file we do not need colorization
+    if (!_logOnFile)
+    {
+        ss << "(" << colorize(level, lvl, _logOnFile) << ") <" << BLUE << "Disqube-" << _Id << NOCOLO << "> ";
+        ss << MAGENTA << std::put_time(std::localtime(&currentTime), "[%Y-%m-%d %H:%M:%S]") << NOCOLO;
+        ss << " " << msg;
+    } else
+    {
+        ss << "(" << level << ") <Disqube-" << _Id << "> ";
+        ss << std::put_time(std::localtime(&currentTime), "[%Y-%m-%d %H:%M:%S]");
+        ss << " " << msg;
+    }
 
     // Check the on-file flag and open the file if necessary
     if (_logOnFile)

@@ -21,6 +21,14 @@ namespace Qube
     class Qube
     {
         private:
+            struct
+            {
+                int tcperror_l; // Error for TCP listener
+                int tcperror_s; // Error for TCP sender
+                int udperror_l; // Error for UDP listener
+                int udperror_s; // Error for UDP sender
+            } _error;
+
             StateMachine_ptr         _stateMachine; // The State Machine of Qube
             QubeInterface_ptr        _itf;          // The qube interface
             Input_t                  _qubeData;     // Some informations for state machine
@@ -29,18 +37,22 @@ namespace Qube
             bool                     _shutdownFlag; // A shutdown flag
             std::string              _confFile;     // The configuration file path
             bool                     _isMaster;     // If the current qube is a master or not
-            int                      _udperror;     // Udp Errors after diagnostic check
-            int                      _tcperror;     // Tcp Error after diagnostic check
 
             static unsigned int generateId(); // Generates the ID for logging
             void initStateMachine(); // Initialize the state machine
             int checkDiagnosticResults(); // Check diagnostic results for TCP and UDP interfaces
+            void handleDiagnosticErrors(const int result); // Handle diagnostic results in case of errors
 
             void init(); // The initial method (INIT State of State Machine)
+            void discover(); // The discover state (DISCOVERING State of the State Machine)
             void shutdown(); // The shutdown state
 
         public:
-            Qube(const std::string& confFile) : _confFile(confFile), _shutdownFlag(false) {};
+            Qube(const std::string& confFile) : _confFile(confFile), _shutdownFlag(false) 
+            {
+                memset(&this->_error, 0, sizeof(this->_error));
+                this->initStateMachine();
+            };
 
             void setMasterFlag(bool value); // Set the current qube as master or client
             bool isMaster() const; // Check if the current qube is a master

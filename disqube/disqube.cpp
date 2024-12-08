@@ -1,5 +1,5 @@
 #include <iostream>
-#include <Qube/QubeInterface.hpp>
+#include <Qube/Qube.hpp>
 
 int main(int argc, const char* argv[])
 {
@@ -11,6 +11,9 @@ int main(int argc, const char* argv[])
     std::string confFile = argv[1];
     // Qube::QubeInterface itf(true, confFile);
     // itf.qubeDiscovering();
+
+    Qube::Qube qube(confFile);
+    qube.run();
 
     return 0;
 }

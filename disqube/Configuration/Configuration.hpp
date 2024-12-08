@@ -47,6 +47,7 @@ namespace Configuration
             std::string getQubesSubnetAddress() const;
             std::string getQubesSubnetMask() const; 
             std::string getQubesSubnetGateway() const;
+            unsigned short getQubesWorkerUdpPort() const;
 
             // Network Configuration Values
             std::string getNetworkInterface() const;

@@ -8,6 +8,7 @@
 #include <CommonLib/Communication/Message.hpp>
 #include <Configuration/Configuration.hpp>
 #include <Logging/DisqubeLogger.hpp>
+#include <Logging/ProgressBar.hpp>
 
 using DisqubeConfiguration_ptr = Configuration::DisqubeConfiguration_ptr;
 using UdpCommunicationInterface_ptr = CommonLib::Communication::UdpCommunicationInterface_ptr;
@@ -20,6 +21,15 @@ using DiagnosticCheckResult = CommonLib::Communication::DiagnosticCheckResult;
 
 namespace Qube
 {
+    // class QubeMessageDispatcher : public Thread
+    // {
+    //     private:
+    //         Queue_ptr<ReceivedData> _queue; // The queue with all the messages
+        
+    //     public:
+    //         QueueMessage
+    // };
+
     /**
      * @class Qube::QubeInterface
      * 

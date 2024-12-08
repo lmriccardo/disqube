@@ -9,6 +9,12 @@
 namespace CommonLib::Communication
 {
     const unsigned short MAX_MESSAGE_CAPACITY = 65535;
+
+    enum class MessageProto
+    {
+        TCP, // Tcp Message Protocol
+        UDP  // Udp Message Protocol
+    };
     
     enum class MessageType
     {
@@ -28,8 +34,10 @@ namespace CommonLib::Communication
         protected:
             MessageType    _type;
             MessageSubType _subType;
+            MessageProto   _proto;
             unsigned short _counter;
             unsigned short _id;
+            uint8_t        _flag;
 
             const static std::size_t NUM_HEAD_BYTES = 8;
 
@@ -61,12 +69,15 @@ namespace CommonLib::Communication
             const unsigned short getMessageId() const;
             const MessageType getMessageType() const;
             const MessageSubType getMessageSubType() const;
+            const MessageProto getMessageProtocol() const;
             const unsigned int getMessageTypeId() const;
+            const uint8_t getMessageProtoFlags() const;
 
             void setMessageType(const MessageType& type);
             void setMessageSubType(const MessageSubType& subType);
             void setMessageId(const unsigned short id);
             void setMessageCounter(const unsigned short counter);
+            void setMessageProtocol(const MessageProto& proto);
 
             virtual void encode() = 0;
             virtual void decode() = 0;

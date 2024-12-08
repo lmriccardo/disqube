@@ -15,12 +15,13 @@ unsigned int Qube::Qube::generateId()
 
 void Qube::Qube::initStateMachine()
 {
-    State_ptr s0 = std::make_shared<State>(StateType::QUBE_INIT, 2);
+    State_ptr s0 = std::make_shared<State>(StateType::QUBE_INIT, 3);
     State_ptr s1 = std::make_shared<State>(StateType::QUBE_DISCOVERING, 2);
     State_ptr s2 = std::make_shared<State>(StateType::QUBE_OPERATIVE, 3);
     State_ptr s3 = std::make_shared<State>(StateType::QUBE_MAINTENANCE, 2);
     State_ptr s4 = std::make_shared<State>(StateType::QUBE_SHUTDOWN, 1);
 
+    s0->addTransition(s4, [](Input_t p){return p.shutdown;});
     s0->addTransition(s1, [](Input_t p){return p.itfReady && (p.discoverFlag && p.isMaster);});
     s0->addTransition(s2, [](Input_t p){return p.itfReady && !(p.discoverFlag && p.isMaster);});
     s1->addTransition(s4, [](Input_t p){return p.shutdown;});
@@ -36,6 +37,7 @@ void Qube::Qube::initStateMachine()
 
 int Qube::Qube::checkDiagnosticResults()
 {
+    memset(&this->_error, 0, sizeof(this->_error));
     this->_itf->interfaceDiagnosticCheck();
 
     DiagnosticCheckResult* udpresult = this->_itf->getUdpDiagnosticResult();
@@ -47,21 +49,59 @@ int Qube::Qube::checkDiagnosticResults()
     if (udpresult->listener_exitOnError)
     {
         result = result + UDP_LISTENER_RUNNING;
-        this->_udperror = udpresult->listener_sockError;
+        this->_error.udperror_l = udpresult->listener_sockError;
     }
 
-    if (udpresult->sender_sockError) result = result + UDP_SENDER_ERROR;
+    if (udpresult->sender_sockError)
+    {
+        result = result + UDP_SENDER_ERROR;
+        this->_error.udperror_s = udpresult->sender_sockError;
+    }
 
     // Then we need to check for TCP results
     if (tcpresult->listener_exitOnError)
     {
         result = result + TCP_LISTENER_RUNNING;
-        this->_tcperror = tcpresult->listener_sockError;
+        this->_error.tcperror_l = tcpresult->listener_sockError;
     }
 
-    if (tcpresult->sender_sockError) result = result + TCP_SENDER_ERROR;
+    if (tcpresult->sender_sockError)
+    {
+        result = result + TCP_SENDER_ERROR;
+        this->_error.tcperror_s = tcpresult->sender_sockError;
+    }
 
     return result;
+}
+
+void Qube::Qube::handleDiagnosticErrors(const int result)
+{
+    std::stringstream ss;
+    ss << "Diagnostic Check detected the following errors: " << std::endl;
+
+    if (result & UDP_LISTENER_RUNNING) {
+        // If the UDP listener has stop running
+        ss << "- UDP Listener exited with error: ";
+        ss << strerror(_error.udperror_l) << std::endl;
+    }
+
+    if (result & UDP_SENDER_ERROR) {
+        ss << "- UDP Sender raise the following error: ";
+        ss << strerror(_error.udperror_s) << std::endl;
+    }
+
+    if (result & TCP_LISTENER_RUNNING) {
+        // If the TCP listener has stop running
+        ss << "- TCP Listener exited with error: ";
+        ss << strerror(_error.tcperror_l) << std::endl;
+    }
+
+    if (result & TCP_SENDER_ERROR) {
+        ss << "- TCP Sender raise the following error: ";
+        ss << strerror(_error.tcperror_s) << std::endl;
+    }
+
+    this->_logger->error(ss.str());
 }
 
 void Qube::Qube::init()
@@ -89,14 +129,28 @@ void Qube::Qube::init()
         // If there are no errors we can continue to next step
         this->_logger->info("The Qube Is Ready to proceed.");
         this->_qubeData.itfReady = true;
-        this->_qubeData.shutdown = true;
+        this->_stateMachine->update(this->_qubeData);
         return;
     }
+
+    // If there are errors we need to handle them
+    this->handleDiagnosticErrors(result);
+    this->_qubeData.shutdown = true;
+    this->_stateMachine->update(this->_qubeData);
+}
+
+void Qube::Qube::discover()
+{
+    this->_itf->qubeDiscovering();
+    this->_qubeData.shutdown = true;
+    this->_stateMachine->update(this->_qubeData);
 }
 
 void Qube::Qube::shutdown()
 {
+    this->_logger->info("Starting to shutdown the Qube Manager");
     this->_itf->stop();
+    this->_shutdownFlag = true;
 }
 
 void Qube::Qube::setMasterFlag(bool value)
@@ -122,6 +176,9 @@ void Qube::Qube::run()
         {
             case StateType::QUBE_INIT:
                 init();
+                break;
+            case StateType::QUBE_DISCOVERING:
+                discover();
                 break;
             case StateType::QUBE_SHUTDOWN:
                 shutdown();
