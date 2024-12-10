@@ -1,15 +1,17 @@
 #include "QubeInterface.hpp"
 
+namespace net = Lib::Network;
+
 void Qube::QubeInterface::initUdpInterface(const std::string &ip)
 {
-    _udpitf = std::make_shared<UdpCommunicationInterface>(
+    _udpitf = std::make_shared<net::UdpCommunicationInterface>(
         ip, _conf->getUdpSenderPort(), _conf->getUdpListenerPort(), _conf->getUdpMaxCapacityQueue()
     );
 }
 
 void Qube::QubeInterface::initTcpInterface(const std::string &ip)
 {
-    _tcpitf = std::make_shared<TcpCommunicationInterface>(
+    _tcpitf = std::make_shared<net::TcpCommunicationInterface>(
         ip, _conf->getTcpSenderPort(), _conf->getTcpListenerPort(),
         _conf->getTcpMaxNumOfConnections(), _conf->getTcpMaxCapacityQueue(), 200, 0
     );
@@ -48,7 +50,7 @@ void Qube::QubeInterface::logInit()
 
 void Qube::QubeInterface::init()
 {
-    std::string ip = Socket::getInterfaceIp(_conf->getNetworkInterface());
+    std::string ip = net::Socket::getInterfaceIp(_conf->getNetworkInterface());
     initUdpInterface(ip); // Create Udp Communication Interface
     initTcpInterface(ip); // Create Tcp Communication Interface
 
@@ -92,8 +94,8 @@ void Qube::QubeInterface::qubeDiscovering()
     
     // Fill a structure with required informations to perform
     // the automatic scans of all IP addresses in the network.
-    SubnetInfo info = Socket::getSubnetConfiguration(subnetAddr, subnetMask);
-    unsigned int gatewayNum = Socket::addressStringToNumber(subnetGtwy);
+    net::Socket::SubnetInfo info = net::Socket::getSubnetConfiguration(subnetAddr, subnetMask);
+    unsigned int gatewayNum = net::Socket::addressStringToNumber(subnetGtwy);
 
     // Let's perform the discover
     std::stringstream ss;
@@ -106,13 +108,13 @@ void Qube::QubeInterface::qubeDiscovering()
 
     auto discover_fn = [&](int x) {
         if (x == gatewayNum) return; // Skip the gateway address
-        std::string addr_s = Socket::addressNumberToString(x, false);
+        std::string addr_s = net::Socket::addressNumberToString(x, false);
 
         // Send the UDP Discover message to the currrent ip address
-        CommonLib::Communication::DiscoverHelloMessage m_discover(messageId++, 0);
+        net::DiscoverHelloMessage m_discover(messageId++, 0);
         m_discover.setUdpPort(_udpitf->getListenerPort());
         m_discover.setTcpPort(_tcpitf->getListenerPort());
-        m_discover.setMessageProtocol(CommonLib::Communication::MessageProto::UDP);
+        m_discover.setMessageProtocol(net::Message::MessageProto::UDP);
         
         _udpitf->sendTo(addr_s, workerPort, m_discover);
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -129,12 +131,12 @@ void Qube::QubeInterface::interfaceDiagnosticCheck()
     this->_tcpitf->performDiagnosticCheck();
 }
 
-DiagnosticCheckResult *Qube::QubeInterface::getUdpDiagnosticResult()
+net::DiagnosticCheckResult *Qube::QubeInterface::getUdpDiagnosticResult()
 {
     return this->_udpitf->getDiagnosticResult();
 }
 
-DiagnosticCheckResult *Qube::QubeInterface::getTcpDiagnosticResult()
+net::DiagnosticCheckResult *Qube::QubeInterface::getTcpDiagnosticResult()
 {
     return this->_tcpitf->getDiagnosticResult();
 }

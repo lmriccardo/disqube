@@ -1,11 +1,13 @@
 #include "StateMachine.hpp"
 
-Qube::StateManager::State::StateType Qube::StateManager::StateMachine::getCurrentType() const
+using namespace Qube::StateManager;
+
+State::StateType StateMachine::getCurrentType() const
 {
     return _currState->getType();
 }
 
-void Qube::StateManager::StateMachine::update(Transition::Input &i)
+void StateMachine::update(Transition::Input_t &i)
 {
     State_ptr nextState = _currState->getNextState(i);
     if (nextState == nullptr) return;
@@ -14,13 +16,13 @@ void Qube::StateManager::StateMachine::update(Transition::Input &i)
     _currState = nextState;
 }
 
-bool Qube::StateManager::StateMachine::checkCurrentState(Transition::Input &i) const
+bool StateMachine::checkCurrentState(Transition::Input_t &i) const
 {
     return isReachable(_currState->getType(), i);
 }
 
-bool Qube::StateManager::StateMachine::isReachable(
-    const State::StateType &type, Transition::Input &i) const 
+bool StateMachine::isReachable(
+    const State::StateType &type, Transition::Input_t &i) const 
 {
     State_ptr nextState = _currState->getNextState(i);
     return (

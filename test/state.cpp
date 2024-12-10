@@ -10,7 +10,7 @@ using StateMachine = Qube::StateManager::StateMachine;
 using State = Qube::StateManager::State;
 using State_ptr = Qube::StateManager::State_ptr;
 using StateType = Qube::StateManager::State::StateType;
-using Input_t = Qube::StateManager::Transition::Input;
+using Input_t = Qube::StateManager::Transition::Input_t;
 
 using namespace Test;
 

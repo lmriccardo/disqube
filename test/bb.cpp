@@ -5,8 +5,8 @@
 #include <CommonLib/Communication/ByteBuffer.hpp>
 #include "Test.hpp"
 
-using ByteBuffer = CommonLib::Communication::ByteBuffer;
-using ByteOrder = CommonLib::Communication::ByteOrder;
+using ByteBuffer = Lib::Network::ByteBuffer;
+using ByteOrder = Lib::Network::ByteBuffer::ByteOrder;
 
 using namespace Test;
 

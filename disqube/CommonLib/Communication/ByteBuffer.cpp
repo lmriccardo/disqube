@@ -1,6 +1,8 @@
 #include "ByteBuffer.hpp"
 
-CommonLib::Communication::ByteBuffer::ByteBuffer(const std::size_t capacity)
+using namespace Lib::Network;
+
+ByteBuffer::ByteBuffer(const std::size_t capacity)
 {
     _capacity = capacity;
     _position = 0;
@@ -12,14 +14,14 @@ CommonLib::Communication::ByteBuffer::ByteBuffer(const std::size_t capacity)
     _order = ByteOrder::BigEndian;
 }
 
-CommonLib::Communication::ByteBuffer::ByteBuffer(const unsigned char *buffer, const std::size_t nofBytes)
+ByteBuffer::ByteBuffer(const unsigned char *buffer, const std::size_t nofBytes)
     : ByteBuffer(nofBytes)
 {
     put(buffer, nofBytes);
     position(0);
 }
 
-CommonLib::Communication::ByteBuffer &CommonLib::Communication::ByteBuffer::operator=(const ByteBuffer &other)
+ByteBuffer &ByteBuffer::operator=(const ByteBuffer &other)
 {
     if (this != &other)
     {
@@ -35,70 +37,70 @@ CommonLib::Communication::ByteBuffer &CommonLib::Communication::ByteBuffer::oper
     return *this;
 }
 
-void CommonLib::Communication::ByteBuffer::setByteOrder(const ByteOrder &newOrder)
+void ByteBuffer::setByteOrder(const ByteOrder &newOrder)
 {
     _order = newOrder;
 }
 
-const CommonLib::Communication::ByteOrder & CommonLib::Communication::ByteBuffer::getByteOrder()
+const ByteBuffer::ByteOrder & ByteBuffer::getByteOrder()
 {
     return _order;
 }
 
-std::size_t CommonLib::Communication::ByteBuffer::position() const
+std::size_t ByteBuffer::position() const
 {
     return _position;
 }
 
-void CommonLib::Communication::ByteBuffer::position(std::size_t newPos)
+void ByteBuffer::position(std::size_t newPos)
 {
     _position = newPos;
 }
 
-std::size_t CommonLib::Communication::ByteBuffer::getBufferSize() const
+std::size_t ByteBuffer::getBufferSize() const
 {
     return _buffer.size();
 }
 
-std::size_t CommonLib::Communication::ByteBuffer::getBufferCapacity() const
+std::size_t ByteBuffer::getBufferCapacity() const
 {
     return _capacity;
 }
 
-std::size_t CommonLib::Communication::ByteBuffer::getRemainingCapacity() const
+std::size_t ByteBuffer::getRemainingCapacity() const
 {
     return getBufferCapacity() - getBufferSize();
 }
 
-std::size_t CommonLib::Communication::ByteBuffer::getRemainingSize() const
+std::size_t ByteBuffer::getRemainingSize() const
 {
     return getBufferSize() - _position;
 }
 
-bool CommonLib::Communication::ByteBuffer::isEmpty() const
+bool ByteBuffer::isEmpty() const
 {
     return _buffer.empty();
 }
 
-void CommonLib::Communication::ByteBuffer::clear()
+void ByteBuffer::clear()
 {
     _buffer.clear();
     position(0);
 }
 
-void CommonLib::Communication::ByteBuffer::spare()
+void ByteBuffer::spare()
 {
     put(static_cast<unsigned char>(0.0));
 }
 
-void CommonLib::Communication::ByteBuffer::put(const unsigned char _data)
+void ByteBuffer::put(const unsigned char _data)
 {
     ByteBuffer::checkForOutOfBound(_position, ByteBuffer::BYTE_SIZE, _capacity, "ByteBuffer::put");
     _buffer.insert(_buffer.begin() + _position, _data);
     position(_position + ByteBuffer::BYTE_SIZE);
 }
 
-void CommonLib::Communication::ByteBuffer::put(const unsigned short _data)
+void ByteBuffer::put(const unsigned short _data)
 {
     ByteBuffer::checkForOutOfBound(_position, ByteBuffer::SHORT_SIZE, _capacity, "ByteBuffer::put");
 
@@ -115,7 +117,7 @@ void CommonLib::Communication::ByteBuffer::put(const unsigned short _data)
     
 }
 
-void CommonLib::Communication::ByteBuffer::put(const unsigned int _data)
+void ByteBuffer::put(const unsigned int _data)
 {
     ByteBuffer::checkForOutOfBound(_position, ByteBuffer::INT_SIZE, _capacity, "ByteBuffer::put");
 
@@ -131,7 +133,7 @@ void CommonLib::Communication::ByteBuffer::put(const unsigned int _data)
     put(_datal);
 }
 
-void CommonLib::Communication::ByteBuffer::put(const unsigned char* _data, const int _start, const std::size_t _size)
+void ByteBuffer::put(const unsigned char* _data, const int _start, const std::size_t _size)
 {
     position(_start);
     ByteBuffer::checkForOutOfBound(_start, _size, _capacity, "ByteBuffer::put");
@@ -142,12 +144,12 @@ void CommonLib::Communication::ByteBuffer::put(const unsigned char* _data, const
     }
 }
 
-void CommonLib::Communication::ByteBuffer::put(const unsigned char* _data, const std::size_t _size)
+void ByteBuffer::put(const unsigned char* _data, const std::size_t _size)
 {
     put(_data, _position, _size);
 }
 
-unsigned char CommonLib::Communication::ByteBuffer::get()
+unsigned char ByteBuffer::get()
 {
     ByteBuffer::checkForOutOfBound(_position, ByteBuffer::BYTE_SIZE, _capacity, "ByteBuffer::get");
     ByteBuffer::errorIfEmpty(this, "ByteBuffer::get");
@@ -157,7 +159,7 @@ unsigned char CommonLib::Communication::ByteBuffer::get()
     return ret;
 }
 
-unsigned short CommonLib::Communication::ByteBuffer::getShort()
+unsigned short ByteBuffer::getShort()
 {
     ByteBuffer::checkForOutOfBound(_position, ByteBuffer::SHORT_SIZE, _capacity, "ByteBuffer::getShort");
     ByteBuffer::errorIfEmpty(this, "ByteBuffer::getShort");
@@ -175,7 +177,7 @@ unsigned short CommonLib::Communication::ByteBuffer::getShort()
     return ret;
 }
 
-unsigned int CommonLib::Communication::ByteBuffer::getInt()
+unsigned int ByteBuffer::getInt()
 {
     ByteBuffer::checkForOutOfBound(_position, ByteBuffer::INT_SIZE, _capacity, "ByteBuffer::getInt");
     ByteBuffer::errorIfEmpty(this, "ByteBuffer::getInt");
@@ -193,7 +195,7 @@ unsigned int CommonLib::Communication::ByteBuffer::getInt()
     return ret;
 }
 
-void CommonLib::Communication::ByteBuffer::getBuffer(unsigned char* _data, const int _start, const std::size_t _size)
+void ByteBuffer::getBuffer(unsigned char* _data, const int _start, const std::size_t _size)
 {
     position(_start);
     ByteBuffer::checkForOutOfBound(_position, _size, _capacity, "ByteBuffer::getBuffer");
@@ -205,17 +207,17 @@ void CommonLib::Communication::ByteBuffer::getBuffer(unsigned char* _data, const
     }
 }
 
-void CommonLib::Communication::ByteBuffer::getBuffer(unsigned char* _data, const std::size_t _size)
+void ByteBuffer::getBuffer(unsigned char* _data, const std::size_t _size)
 {
     getBuffer(_data, _position, _size);
 }
 
-const CommonLib::Communication::buffer_t& CommonLib::Communication::ByteBuffer::getBuffer() const
+const ByteBuffer::buffer_t& ByteBuffer::getBuffer() const
 {
     return _buffer;
 }
 
-void CommonLib::Communication::ByteBuffer::checkForOutOfBound(
+void ByteBuffer::checkForOutOfBound(
     const int _position, const std::size_t _size, const std::size_t _max, std::string _func
 ) {
     if (_position + _size > _max)
@@ -231,7 +233,7 @@ void CommonLib::Communication::ByteBuffer::checkForOutOfBound(
     }
 }
 
-void CommonLib::Communication::ByteBuffer::errorIfEmpty(ByteBuffer* _buff, std::string _func)
+void ByteBuffer::errorIfEmpty(ByteBuffer* _buff, std::string _func)
 {
     if (_buff->isEmpty())
     {

@@ -3,8 +3,8 @@
 #include <CommonLib/Concurrency/Thread.hpp>
 #include "Test.hpp"
 
-using QueueInt = CommonLib::Concurrency::Queue<int>;
-using Thread = CommonLib::Concurrency::Thread;
+using QueueInt = Lib::Concurrency::Queue<int>;
+using Thread = Lib::Concurrency::Thread;
 
 using namespace Test;
 

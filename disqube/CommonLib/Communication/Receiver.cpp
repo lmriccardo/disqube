@@ -1,6 +1,8 @@
 #include "Receiver.hpp"
 
-struct CommonLib::Communication::ReceivedData CommonLib::Communication::Receiver::handleReceivedMessages(
+using namespace Lib::Network;
+
+struct ReceivedData Receiver::handleReceivedMessages(
     unsigned char *buff, const std::size_t n, sockaddr_in *src
 ) {
     struct ReceivedData rdata;
@@ -9,17 +11,17 @@ struct CommonLib::Communication::ReceivedData CommonLib::Communication::Receiver
     return rdata;
 }
 
-bool CommonLib::Communication::Receiver::hasStopped() const
+bool Receiver::hasStopped() const
 {
     return _stopped;
 }
 
-void CommonLib::Communication::Receiver::stop()
+void Receiver::stop()
 {
     this->_stopped = true;
 }
 
-void CommonLib::Communication::UdpReceiver::receive()
+void UdpReceiver::receive()
 {
     // If the sigstop is set to True then return
     if (this->_stopped) return;
@@ -52,11 +54,11 @@ void CommonLib::Communication::UdpReceiver::receive()
     this->_queue->push(result);
 }
 
-void CommonLib::Communication::TcpReceiver::receive()
+void TcpReceiver::receive()
 {
     char buffer[RECVBUFFSIZE];
     ssize_t nofBytes;
-    struct SocketInfo si = {true, false, false, false, false, false, 0};
+    struct Socket::SocketInfo si = {true, false, false, false, false, false, 0};
 
     while (!this->_stopped)
     {
@@ -116,12 +118,12 @@ void CommonLib::Communication::TcpReceiver::receive()
     // close(_clientfd);
 }
 
-void CommonLib::Communication::TcpReceiver::run()
+void TcpReceiver::run()
 {
     receive();
 }
 
-bool CommonLib::Communication::TcpReceiver::isRunning() const
+bool TcpReceiver::isRunning() const
 {
     return !hasStopped();
 }

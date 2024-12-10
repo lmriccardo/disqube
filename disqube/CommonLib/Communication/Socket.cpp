@@ -1,6 +1,8 @@
 #include "Socket.hpp"
 
-CommonLib::Communication::Socket::Socket(
+using namespace Lib::Network;
+
+Socket::Socket(
     const std::string &ip, const unsigned short port, const SocketType &type
 ) : _ip(ip), _port(port), _type(type)
 {
@@ -67,7 +69,7 @@ CommonLib::Communication::Socket::Socket(
     updateSocketInfo();
 }
 
-CommonLib::Communication::Socket::Socket(const Socket &other)
+Socket::Socket(const Socket &other)
 {
     _ip = other._ip;
     _port = other._port;
@@ -77,60 +79,60 @@ CommonLib::Communication::Socket::Socket(const Socket &other)
     _fd = other._fd;
 }
 
-bool CommonLib::Communication::Socket::isSocketValid() const
+bool Socket::isSocketValid() const
 {
     return _info.active;
 }
 
-void CommonLib::Communication::Socket::closeSocket()
+void Socket::closeSocket()
 {
     shutdown(_fd, SHUT_RDWR);
     int ret = close(_fd);
     _info.active = false;
 }
 
-bool CommonLib::Communication::Socket::isClosed() const
+bool Socket::isClosed() const
 {
     return !_info.active;
 }
 
-const std::string &CommonLib::Communication::Socket::getIpAddress() const
+const std::string &Socket::getIpAddress() const
 {
     return _ip;
 }
 
-unsigned short CommonLib::Communication::Socket::getPortNumber() const
+unsigned short Socket::getPortNumber() const
 {
     return _port;
 }
 
-int CommonLib::Communication::Socket::getSocketFileDescriptor() const
+int Socket::getSocketFileDescriptor() const
 {
     return _fd;
 }
 
-const sockaddr_in &CommonLib::Communication::Socket::getSource() const
+const sockaddr_in &Socket::getSource() const
 {
     return _src;
 }
 
-void CommonLib::Communication::Socket::updateSocketInfo()
+void Socket::updateSocketInfo()
 {
     Socket::getSocketInfo(this->_fd, &this->_info);
 }
 
-CommonLib::Communication::SocketInfo *CommonLib::Communication::Socket::getSocketInfo()
+Socket::SocketInfo *Socket::getSocketInfo()
 {
     return &_info;
 }
 
-void CommonLib::Communication::Socket::flushSocketError()
+void Socket::flushSocketError()
 {
     _info.socket_error = false;
     _info.error = 0;
 }
 
-std::string CommonLib::Communication::Socket::addressNumberToString(unsigned int addr, const bool be)
+std::string Socket::addressNumberToString(unsigned int addr, const bool be)
 {
     // If it is in Little-Endian, then convert it to Big-Endian
     if (!be) addr = htonl(addr);
@@ -140,7 +142,7 @@ std::string CommonLib::Communication::Socket::addressNumberToString(unsigned int
     return std::string(_addr);
 }
 
-unsigned int CommonLib::Communication::Socket::addressStringToNumber(const std::string &addr)
+unsigned int Socket::addressStringToNumber(const std::string &addr)
 {
     struct sockaddr_in sa;
 
@@ -155,7 +157,7 @@ unsigned int CommonLib::Communication::Socket::addressStringToNumber(const std::
     return ntohl(sa.sin_addr.s_addr);
 }
 
-std::string CommonLib::Communication::Socket::getHostnameIp(const std::string &hostname)
+std::string Socket::getHostnameIp(const std::string &hostname)
 {
     struct hostent *hostentry = gethostbyname(hostname.c_str());
     if (hostentry == NULL)
@@ -166,7 +168,7 @@ std::string CommonLib::Communication::Socket::getHostnameIp(const std::string &h
     return addressNumberToString((*((struct in_addr*) hostentry->h_addr_list[0])).s_addr, true);
 }
 
-struct CommonLib::Communication::SubnetInfo CommonLib::Communication::Socket::getSubnetConfiguration(
+struct Socket::SubnetInfo Socket::getSubnetConfiguration(
     const std::string &addr, const std::string &mask
 ) {
     struct SubnetInfo si; // Initialize the output structure
@@ -197,7 +199,7 @@ struct CommonLib::Communication::SubnetInfo CommonLib::Communication::Socket::ge
     return si;
 }
 
-void CommonLib::Communication::Socket::getSocketInfo(int sockfd, SocketInfo *sockinfo)
+void Socket::getSocketInfo(int sockfd, SocketInfo *sockinfo)
 {
     // Before getting the info reset the structure
     Socket::resetSocketInfo(sockinfo);
@@ -240,7 +242,7 @@ void CommonLib::Communication::Socket::getSocketInfo(int sockfd, SocketInfo *soc
     if (pfd.revents & POLLOUT) sockinfo->ready_to_write = true;
 }
 
-void CommonLib::Communication::Socket::resetSocketInfo(SocketInfo *sockinfo)
+void Socket::resetSocketInfo(SocketInfo *sockinfo)
 {
     sockinfo->active = true;
     sockinfo->connecition_cld = false;
@@ -251,7 +253,7 @@ void CommonLib::Communication::Socket::resetSocketInfo(SocketInfo *sockinfo)
     sockinfo->timeout_ela = false;
 }
 
-std::string CommonLib::Communication::Socket::getInterfaceIp(const std::string &interface)
+std::string Socket::getInterfaceIp(const std::string &interface)
 {
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     struct ifreq ifr;
@@ -265,7 +267,7 @@ std::string CommonLib::Communication::Socket::getInterfaceIp(const std::string &
     return addressNumberToString(_addr_i, true);
 }
 
-std::string CommonLib::Communication::Socket::getBroadcastIp(const std::string& interface)
+std::string Socket::getBroadcastIp(const std::string& interface)
 {
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     struct ifreq ifr;
@@ -279,23 +281,23 @@ std::string CommonLib::Communication::Socket::getBroadcastIp(const std::string& 
     return std::move(addressNumberToString(_addr_i, true));
 }
 
-void CommonLib::Communication::TcpSocket::setNumberOfReconnections(int reconn)
+void TcpSocket::setNumberOfReconnections(int reconn)
 {
     _nreconn = reconn;
 }
 
-void CommonLib::Communication::TcpSocket::setTimeout(long int sec, long int usec)
+void TcpSocket::setTimeout(long int sec, long int usec)
 {
     _timeout_s = sec;
     _timeout_us = usec;
 }
 
-void CommonLib::Communication::TcpSocket::setTimeout(long int sec)
+void TcpSocket::setTimeout(long int sec)
 {
     setTimeout(sec, 0);   
 }
 
-timeval CommonLib::Communication::TcpSocket::getTimeout()
+timeval TcpSocket::getTimeout()
 {
     struct timeval timeout;
     timeout.tv_sec = _timeout_s;
@@ -303,18 +305,18 @@ timeval CommonLib::Communication::TcpSocket::getTimeout()
     return timeout;
 }
 
-bool CommonLib::Communication::TcpSocket::isConnected() const
+bool TcpSocket::isConnected() const
 {
     return _connected;
 }
 
-void CommonLib::Communication::TcpSocket::disconnect()
+void TcpSocket::disconnect()
 {
     _connected = false;
     memset(&_dst, 0, sizeof(struct sockaddr_in));
 }
 
-bool CommonLib::Communication::TcpSocket::connectOne(struct sockaddr_in* dst)
+bool TcpSocket::connectOne(struct sockaddr_in* dst)
 {
     // Set the socket to non-blocking mode
     int flags = fcntl(_fd, F_GETFL, 0);
@@ -364,7 +366,7 @@ bool CommonLib::Communication::TcpSocket::connectOne(struct sockaddr_in* dst)
     return true;
 }
 
-void CommonLib::Communication::TcpSocket::connectTo(const std::string &ip, const unsigned short port)
+void TcpSocket::connectTo(const std::string &ip, const unsigned short port)
 {
     // Check of socket sanity
     updateSocketInfo();
@@ -398,7 +400,7 @@ void CommonLib::Communication::TcpSocket::connectTo(const std::string &ip, const
     _connected = false;
 }
 
-std::string CommonLib::Communication::TcpSocket::getDestinationIp() const
+std::string TcpSocket::getDestinationIp() const
 {
     char addr[INET_ADDRSTRLEN];
     memset(addr, 0, sizeof(addr));
@@ -408,17 +410,17 @@ std::string CommonLib::Communication::TcpSocket::getDestinationIp() const
     return ip_addr;
 }
 
-unsigned short CommonLib::Communication::TcpSocket::getDestinationPort() const
+unsigned short TcpSocket::getDestinationPort() const
 {
     return ntohs(_dst.sin_port);
 }
 
-const sockaddr_in &CommonLib::Communication::TcpSocket::getDestination() const
+const sockaddr_in &TcpSocket::getDestination() const
 {
     return _dst;
 }
 
-bool CommonLib::Communication::TcpSocket::sendTo(const std::string &ip, const unsigned short port, unsigned char *buff, const std::size_t n)
+bool TcpSocket::sendTo(const std::string &ip, const unsigned short port, unsigned char *buff, const std::size_t n)
 {
     connectTo(ip, port); // Try connection with the endpoint
 
@@ -435,7 +437,7 @@ bool CommonLib::Communication::TcpSocket::sendTo(const std::string &ip, const un
     return true;
 }
 
-bool CommonLib::Communication::UdpSocket::send(unsigned char *buff, const std::size_t n, sockaddr_in *dst)
+bool UdpSocket::send(unsigned char *buff, const std::size_t n, sockaddr_in *dst)
 {
     updateSocketInfo(); // Socket sanity check
 

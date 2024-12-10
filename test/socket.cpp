@@ -2,11 +2,9 @@
 #include <CommonLib/Communication/Socket.hpp>
 #include "Test.hpp"
 
-using Socket = CommonLib::Communication::Socket;
-using UdpSocket = CommonLib::Communication::UdpSocket;
-using TcpSocket = CommonLib::Communication::TcpSocket;
-using SocketType = CommonLib::Communication::SocketType;
-using SocketInfo = CommonLib::Communication::SocketInfo;
+using Socket = Lib::Network::Socket;
+using UdpSocket = Lib::Network::UdpSocket;
+using TcpSocket = Lib::Network::TcpSocket;
 
 using namespace Test;
 
@@ -19,7 +17,7 @@ void test_udp()
         UdpSocket udpsock("127.0.0.1", 1234);
         assert_eq<bool>(true, udpsock.isSocketValid());
 
-        SocketInfo* info = udpsock.getSocketInfo();
+        Socket::SocketInfo* info = udpsock.getSocketInfo();
         assert_eq<bool>(true, info->ready_to_write);
         assert_eq<bool>(false, info->socket_error);
         
@@ -42,7 +40,7 @@ void test_tcp()
         TcpSocket tcpsock(Socket::getInterfaceIp("eth0"), 1234);
         assert_eq<bool>(true, tcpsock.isSocketValid());
 
-        SocketInfo* info = tcpsock.getSocketInfo();
+       Socket::SocketInfo* info = tcpsock.getSocketInfo();
         assert_eq<bool>(false, info->socket_error);
 
         std::string dstIp = Socket::getHostnameIp("github.com");
@@ -77,7 +75,7 @@ void test_type_failure()
 
     try
     {
-        Socket s("127.0.0.1", 1234, SocketType::RAW);
+        Socket s("127.0.0.1", 1234, Socket::SocketType::RAW);
         std::cout << "Failed" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -92,7 +90,7 @@ void test_type_failure()
 void test_copy_constructor()
 {
     std::cout << "[TEST 4/4] Socket Copy constructor Test: ";
-    Socket s("127.0.0.1", 1234, SocketType::UDP);
+    Socket s("127.0.0.1", 1234, Socket::SocketType::UDP);
     Socket s_c(s);
 
     assert_eq_str(s_c.getIpAddress().c_str(), "127.0.0.1", 9);
