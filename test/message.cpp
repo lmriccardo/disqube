@@ -1,7 +1,7 @@
 #include <iostream>
 #include <CommonLib/Communication/Message.hpp>
 
-using SimpleMessage = CommonLib::Communication::SimpleMessage;
+using SimpleMessage = Lib::Network::SimpleMessage;
 
 int main()
 {

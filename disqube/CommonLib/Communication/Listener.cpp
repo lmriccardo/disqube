@@ -1,33 +1,35 @@
 #include "Listener.hpp"
 
-void CommonLib::Communication::Listener::stop()
+using namespace Lib::Network;
+
+void Listener::stop()
 {
     _sigstop = true;
 }
 
-bool CommonLib::Communication::Listener::isRunning() const
+bool Listener::isRunning() const
 {
     return !_sigstop;
 }
 
-struct CommonLib::Communication::ReceivedData CommonLib::Communication::Listener::getElement()
+struct ReceivedData Listener::getElement()
 {
     return _queue->pop();
 }
 
-Queue_ptr<struct CommonLib::Communication::ReceivedData> CommonLib::Communication::Listener::getQueue()
+Lib::Concurrency::Queue_ptr<struct ReceivedData> Listener::getQueue()
 {
     return _queue;
 }
 
-void CommonLib::Communication::UdpListener::run()
+void UdpListener::run()
 {
     // Loop until the stop signal becomes true
     while (!this->_sigstop)
     {
         // Update the socket info and check if there are incoming messages
         this->_socket.updateSocketInfo();
-        struct SocketInfo* si = this->_socket.getSocketInfo();
+        struct Socket::SocketInfo* si = this->_socket.getSocketInfo();
 
         // Check for errors
         if (!si->active && si->socket_error)
@@ -57,23 +59,23 @@ void CommonLib::Communication::UdpListener::run()
     }
 }
 
-const CommonLib::Communication::UdpSocket &CommonLib::Communication::UdpListener::getSocket()
+const UdpSocket &UdpListener::getSocket()
 {
     return _socket;
 }
 
-bool CommonLib::Communication::UdpListener::hasStoppedWithErrors()
+bool UdpListener::hasStoppedWithErrors()
 {
-    struct SocketInfo* si = this->_socket.getSocketInfo();
+    struct Socket::SocketInfo* si = this->_socket.getSocketInfo();
     return si->socket_error && (si->error != 0);
 }
 
-int CommonLib::Communication::UdpListener::getSocketError()
+int UdpListener::getSocketError()
 {
     return this->_socket.getSocketInfo()->error;
 }
 
-int CommonLib::Communication::TcpListener::handleReceivers()
+int TcpListener::handleReceivers()
 {
     int voidpos = _recvs.capacity() - 1;
 
@@ -105,7 +107,7 @@ int CommonLib::Communication::TcpListener::handleReceivers()
     return voidpos;
 }
 
-int CommonLib::Communication::TcpListener::acceptIncoming(struct sockaddr_in& client, socklen_t clientlen)
+int TcpListener::acceptIncoming(struct sockaddr_in& client, socklen_t clientlen)
 {
     int fd = this->_socket.getSocketFileDescriptor();
     int client_socket;
@@ -119,7 +121,7 @@ int CommonLib::Communication::TcpListener::acceptIncoming(struct sockaddr_in& cl
     return client_socket;
 }
 
-void CommonLib::Communication::TcpListener::run()
+void TcpListener::run()
 {
     // Take the file descriptor of the current TCP socket
     int fd = _socket.getSocketFileDescriptor();
@@ -136,7 +138,7 @@ void CommonLib::Communication::TcpListener::run()
         throw std::runtime_error("[TcpListener::listenFrom] Failed listening");
     }
 
-    struct SocketInfo* si;
+    struct Socket::SocketInfo* si;
     struct sockaddr_in client;
     int client_socket;
     socklen_t clientlen;
@@ -214,28 +216,28 @@ void CommonLib::Communication::TcpListener::run()
     }
 }
 
-void CommonLib::Communication::TcpListener::setTimeout(long int sec, long int usec)
+void TcpListener::setTimeout(long int sec, long int usec)
 {
     _socket.setTimeout(sec, usec);
 }
 
-void CommonLib::Communication::TcpListener::setTimeout(long int sec)
+void TcpListener::setTimeout(long int sec)
 {
     _socket.setTimeout(sec);
 }
 
-const CommonLib::Communication::TcpSocket &CommonLib::Communication::TcpListener::getSocket()
+const TcpSocket &TcpListener::getSocket()
 {
     return _socket;
 }
 
-bool CommonLib::Communication::TcpListener::hasStoppedWithErrors()
+bool TcpListener::hasStoppedWithErrors()
 {
-    struct SocketInfo* si = this->_socket.getSocketInfo();
+    struct Socket::SocketInfo* si = this->_socket.getSocketInfo();
     return si->socket_error && (si->error != 0);
 }
 
-int CommonLib::Communication::TcpListener::getSocketError()
+int TcpListener::getSocketError()
 {
     return this->_socket.getSocketInfo()->error;
 }

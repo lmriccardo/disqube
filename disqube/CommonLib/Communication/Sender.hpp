@@ -6,7 +6,7 @@
 #include <CommonLib/Communication/Socket.hpp>
 #include <CommonLib/Communication/Message.hpp>
 
-namespace CommonLib::Communication
+namespace Lib::Network
 {
     class Sender
     {

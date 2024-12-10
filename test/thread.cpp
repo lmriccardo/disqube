@@ -11,7 +11,7 @@ using namespace Test;
 
 std::mutex mutex;
 
-class MyThread : public CommonLib::Concurrency::Thread
+class MyThread : public Lib::Concurrency::Thread
 {
     public:
         std::vector<int> vec;
@@ -38,7 +38,7 @@ class MyThread : public CommonLib::Concurrency::Thread
         }
 };
 
-class MyDaemonThread : public CommonLib::Concurrency::Thread
+class MyDaemonThread : public Lib::Concurrency::Thread
 {
     public:
         bool stopsig;
@@ -159,7 +159,7 @@ void test_function_thread()
 {
     std::cout << "[TEST 3/3] Testing lambda function thread: ";
     int x = 10;
-    std::thread t1 = CommonLib::Concurrency::Thread::start(
+    std::thread t1 = Lib::Concurrency::Thread::start(
         [](int x)
         {
             for (int i = 0; i < x; i++)

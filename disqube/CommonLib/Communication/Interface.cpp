@@ -1,44 +1,46 @@
 #include "Interface.hpp"
 
-bool CommonLib::Communication::CommunicationInterface::isClosed()
+using namespace Lib::Network;
+
+bool CommunicationInterface::isClosed()
 {
     // Check if the sender socket is closed and the listening is not running
     return _sender->isSocketClosed() && !_listener->isRunning();
 }
 
-void CommonLib::Communication::CommunicationInterface::sendTo(const std::string &ip, unsigned short port, Message& msg)
+void CommunicationInterface::sendTo(const std::string &ip, unsigned short port, Message& msg)
 {
     // Sends a message using the sender socket
     bool result = _sender->sendTo(ip, port, msg);
 }
 
-CommonLib::Communication::ReceivedData CommonLib::Communication::CommunicationInterface::getReceivedElement()
+ReceivedData CommunicationInterface::getReceivedElement()
 {
     // Pop an element from the receiver queue (no priority involved)
     return _queue->pop();
 }
 
-void CommonLib::Communication::CommunicationInterface::start()
+void CommunicationInterface::start()
 {
     _listener->start();
 }
 
-void CommonLib::Communication::CommunicationInterface::senderStop()
+void CommunicationInterface::senderStop()
 {
     this->_sender->closeSocket();
 }
 
-unsigned short CommonLib::Communication::CommunicationInterface::getSenderPort() const
+unsigned short CommunicationInterface::getSenderPort() const
 {
     return _sender->getSocket().getPortNumber();
 }
 
-unsigned short CommonLib::Communication::CommunicationInterface::getListenerPort() const
+unsigned short CommunicationInterface::getListenerPort() const
 {
     return _listener->getSocket().getPortNumber();
 }
 
-void CommonLib::Communication::CommunicationInterface::performDiagnosticCheck()
+void CommunicationInterface::performDiagnosticCheck()
 {
     this->zeroDiagnosticCheck();
 
@@ -51,12 +53,12 @@ void CommonLib::Communication::CommunicationInterface::performDiagnosticCheck()
     this->_check.sender_sockError = this->_sender->getSocket().getSocketInfo()->error;
 }
 
-CommonLib::Communication::DiagnosticCheckResult *CommonLib::Communication::CommunicationInterface::getDiagnosticResult()
+DiagnosticCheckResult *CommunicationInterface::getDiagnosticResult()
 {
     return &this->_check;
 }
 
-CommonLib::Communication::UdpCommunicationInterface::UdpCommunicationInterface(
+UdpCommunicationInterface::UdpCommunicationInterface(
     const std::string &ip, unsigned short sport, unsigned short lport, const std::size_t capacity
 ) : CommunicationInterface(capacity)
 {
@@ -64,7 +66,7 @@ CommonLib::Communication::UdpCommunicationInterface::UdpCommunicationInterface(
     _listener = std::make_shared<UdpListener>(ip, lport, _queue); // The receiver queue is the same
 }
 
-void CommonLib::Communication::UdpCommunicationInterface::close()
+void UdpCommunicationInterface::close()
 {
     // Stop the listener
     this->_listener->stop();
@@ -78,7 +80,7 @@ void CommonLib::Communication::UdpCommunicationInterface::close()
     this->_listener->join();
 }
 
-void CommonLib::Communication::CommunicationInterface::zeroDiagnosticCheck()
+void CommunicationInterface::zeroDiagnosticCheck()
 {
     this->_check.listener_exitOnError = false;
     this->_check.listener_isRunning = true;
@@ -86,9 +88,9 @@ void CommonLib::Communication::CommunicationInterface::zeroDiagnosticCheck()
     this->_check.sender_sockError = 0;
 }
 
-CommonLib::Communication::CommunicationInterface::~CommunicationInterface() {}
+CommunicationInterface::~CommunicationInterface() {}
 
-CommonLib::Communication::TcpCommunicationInterface::TcpCommunicationInterface(
+TcpCommunicationInterface::TcpCommunicationInterface(
     const std::string &ip, unsigned short sport, unsigned short lport, const std::size_t nconn, 
     const std::size_t capacity, long int timesec, long int timeusec
 ) : CommunicationInterface(capacity)
@@ -100,7 +102,7 @@ CommonLib::Communication::TcpCommunicationInterface::TcpCommunicationInterface(
     std::static_pointer_cast<TcpListener>(_listener)->setTimeout(timesec, timeusec);
 }
 
-void CommonLib::Communication::TcpCommunicationInterface::close()
+void TcpCommunicationInterface::close()
 {
     // First close the sender socket
     if (!this->_sender->isSocketClosed()) this->_sender->closeSocket();
@@ -114,7 +116,7 @@ void CommonLib::Communication::TcpCommunicationInterface::close()
     this->_listener->join();
 }
 
-void CommonLib::Communication::TcpCommunicationInterface::disconnect()
+void TcpCommunicationInterface::disconnect()
 {
     std::static_pointer_cast<TcpSender>(_sender)->disconnect();
 }

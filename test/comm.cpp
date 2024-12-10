@@ -10,14 +10,14 @@
 #define SENDER_PORT 1235
 
 using namespace Test;
-using Socket = CommonLib::Communication::Socket;
-using UdpSender = CommonLib::Communication::UdpSender;
-using TcpSender = CommonLib::Communication::TcpSender;
-using SimpleMessage = CommonLib::Communication::SimpleMessage;
+using Socket = Lib::Network::Socket;
+using UdpSender = Lib::Network::UdpSender;
+using TcpSender = Lib::Network::TcpSender;
+using SimpleMessage = Lib::Network::SimpleMessage;
 
-using UdpListener = CommonLib::Communication::UdpListener;
-using TcpListener = CommonLib::Communication::TcpListener;
-using ReceivedData = CommonLib::Communication::ReceivedData;
+using UdpListener = Lib::Network::UdpListener;
+using TcpListener = Lib::Network::TcpListener;
+using ReceivedData = Lib::Network::ReceivedData;
 
 std::string msg = "Ciao";
 std::string stop = "Stop";

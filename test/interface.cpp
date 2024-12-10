@@ -1,10 +1,10 @@
 #include "Test.hpp"
 #include <CommonLib/Communication/Interface.hpp>
 
-using UdpCommunicationInterface = CommonLib::Communication::UdpCommunicationInterface;
-using TcpCommunicationInterface = CommonLib::Communication::TcpCommunicationInterface;
-using SimpleMessage = CommonLib::Communication::SimpleMessage;
-using ReceivedData = CommonLib::Communication::ReceivedData;
+using UdpCommunicationInterface = Lib::Network::UdpCommunicationInterface;
+using TcpCommunicationInterface = Lib::Network::TcpCommunicationInterface;
+using SimpleMessage = Lib::Network::SimpleMessage;
+using ReceivedData = Lib::Network::ReceivedData;
 
 using namespace Test;
 

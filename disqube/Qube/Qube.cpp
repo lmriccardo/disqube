@@ -1,5 +1,8 @@
 #include "Qube.hpp"
 
+namespace sm = Qube::StateManager;
+namespace net = Lib::Network;
+
 unsigned int Qube::Qube::generateId()
 {
     auto now = std::chrono::system_clock::now();
@@ -15,24 +18,24 @@ unsigned int Qube::Qube::generateId()
 
 void Qube::Qube::initStateMachine()
 {
-    State_ptr s0 = std::make_shared<State>(StateType::QUBE_INIT, 3);
-    State_ptr s1 = std::make_shared<State>(StateType::QUBE_DISCOVERING, 2);
-    State_ptr s2 = std::make_shared<State>(StateType::QUBE_OPERATIVE, 3);
-    State_ptr s3 = std::make_shared<State>(StateType::QUBE_MAINTENANCE, 2);
-    State_ptr s4 = std::make_shared<State>(StateType::QUBE_SHUTDOWN, 1);
+    sm::State_ptr s0 = std::make_shared<sm::State>(sm::State::StateType::QUBE_INIT, 3);
+    sm::State_ptr s1 = std::make_shared<sm::State>(sm::State::StateType::QUBE_DISCOVERING, 2);
+    sm::State_ptr s2 = std::make_shared<sm::State>(sm::State::StateType::QUBE_OPERATIVE, 3);
+    sm::State_ptr s3 = std::make_shared<sm::State>(sm::State::StateType::QUBE_MAINTENANCE, 2);
+    sm::State_ptr s4 = std::make_shared<sm::State>(sm::State::StateType::QUBE_SHUTDOWN, 1);
 
-    s0->addTransition(s4, [](Input_t p){return p.shutdown;});
-    s0->addTransition(s1, [](Input_t p){return p.itfReady && (p.discoverFlag && p.isMaster);});
-    s0->addTransition(s2, [](Input_t p){return p.itfReady && !(p.discoverFlag && p.isMaster);});
-    s1->addTransition(s4, [](Input_t p){return p.shutdown;});
-    s1->addTransition(s2, [](Input_t p){return p.anyWorker;});
-    s2->addTransition(s4, [](Input_t p){return p.shutdown;});
-    s2->addTransition(s3, [](Input_t p){return p.maintenance;});
-    s2->addTransition(s1, [](Input_t p){return !p.anyWorker && p.isMaster;});
-    s3->addTransition(s4, [](Input_t p){return p.shutdown;});
-    s3->addTransition(s2, [](Input_t p){return !p.maintenance;});
+    s0->addTransition(s4, [](sm::Transition::Input_t p){return p.shutdown;});
+    s0->addTransition(s1, [](sm::Transition::Input_t p){return p.itfReady && (p.discoverFlag && p.isMaster);});
+    s0->addTransition(s2, [](sm::Transition::Input_t p){return p.itfReady && !(p.discoverFlag && p.isMaster);});
+    s1->addTransition(s4, [](sm::Transition::Input_t p){return p.shutdown;});
+    s1->addTransition(s2, [](sm::Transition::Input_t p){return p.anyWorker;});
+    s2->addTransition(s4, [](sm::Transition::Input_t p){return p.shutdown;});
+    s2->addTransition(s3, [](sm::Transition::Input_t p){return p.maintenance;});
+    s2->addTransition(s1, [](sm::Transition::Input_t p){return !p.anyWorker && p.isMaster;});
+    s3->addTransition(s4, [](sm::Transition::Input_t p){return p.shutdown;});
+    s3->addTransition(s2, [](sm::Transition::Input_t p){return !p.maintenance;});
 
-    _stateMachine = std::make_shared<StateMachine>(s0);
+    _stateMachine = std::make_shared<sm::StateMachine>(s0);
 }
 
 int Qube::Qube::checkDiagnosticResults()
@@ -40,8 +43,8 @@ int Qube::Qube::checkDiagnosticResults()
     memset(&this->_error, 0, sizeof(this->_error));
     this->_itf->interfaceDiagnosticCheck();
 
-    DiagnosticCheckResult* udpresult = this->_itf->getUdpDiagnosticResult();
-    DiagnosticCheckResult* tcpresult = this->_itf->getTcpDiagnosticResult();
+    net::DiagnosticCheckResult* udpresult = this->_itf->getUdpDiagnosticResult();
+    net::DiagnosticCheckResult* tcpresult = this->_itf->getTcpDiagnosticResult();
 
     int result = 0;
     
@@ -107,7 +110,7 @@ void Qube::Qube::handleDiagnosticErrors(const int result)
 void Qube::Qube::init()
 {
     // Load the configuration
-    _conf = std::make_shared<DisqubeConfiguration>(_confFile);
+    _conf = std::make_shared<Configuration::DisqubeConfiguration>(_confFile);
 
     // Create the logger
     _logger = std::make_shared<Logging::DisqubeLogger>(
@@ -174,13 +177,13 @@ void Qube::Qube::run()
     {
         switch (_stateMachine->getCurrentType())
         {
-            case StateType::QUBE_INIT:
+            case sm::State::StateType::QUBE_INIT:
                 init();
                 break;
-            case StateType::QUBE_DISCOVERING:
+            case sm::State::StateType::QUBE_DISCOVERING:
                 discover();
                 break;
-            case StateType::QUBE_SHUTDOWN:
+            case sm::State::StateType::QUBE_SHUTDOWN:
                 shutdown();
                 break;
             default:
