@@ -12,14 +12,31 @@
 
 namespace Qube
 {
-    // class QubeMessageDispatcher : public Thread
-    // {
-    //     private:
-    //         Queue_ptr<ReceivedData> _queue; // The queue with all the messages
+    class QubeMessageReceiver : public Lib::Concurrency::Thread
+    {
+    private:
+        Lib::Concurrency::Queue_ptr<Lib::Network::ReceivedData> _queue; // The queue with all the messages
+        Lib::Network::UdpCommunicationInterface_ptr _udpitf;            // Udp Communication Interface
+        Lib::Network::TcpCommunicationInterface_ptr _tcpitf;            // Tcp Communication Interface
+        bool _sigstop = false;
 
-    //     public:
-    //         QueueMessage
-    // };
+        void getFromUdpInterface(); // Receives a message from the UDP interface
+        void getFromTcpInterface(); // Receives a message from the TCP interface
+
+    public:
+        QubeMessageReceiver(const Lib::Network::UdpCommunicationInterface_ptr &udpitf,
+                            const Lib::Network::TcpCommunicationInterface_ptr &tcpitf)
+            : Thread("Queue Message Dispatcher"), _udpitf(udpitf), _tcpitf(tcpitf)
+        {
+            _queue = std::make_shared<Lib::Concurrency::Queue<Lib::Network::ReceivedData>>(100);
+        }
+
+        void run() override;
+        bool isRunning() const override;
+        void stop();
+    };
+
+    typedef std::shared_ptr<QubeMessageReceiver> QubeMessageReceiver_ptr;
 
     /**
      * @class Qube::QubeInterface
@@ -43,11 +60,12 @@ namespace Qube
     class QubeInterface
     {
     private:
-        Configuration::DisqubeConfiguration_ptr _conf;        // General configuration
+        Configuration::DisqubeConfiguration_ptr _conf;       // General configuration
         Lib::Network::UdpCommunicationInterface_ptr _udpitf; // Udp Communication Interface
         Lib::Network::TcpCommunicationInterface_ptr _tcpitf; // Tcp Communication Interface
-        Logging::DisqubeLogger_ptr _logger;    // Generic logging class
-        bool _isMaster;                        // Master Qube interface or not.
+        QubeMessageReceiver_ptr _receiver;                   // Qube message receiver
+        Logging::DisqubeLogger_ptr _logger;                  // Generic logging class
+        bool _isMaster;                                      // Master Qube interface or not.
 
         // A list of pair (ip, port no) for each node connected.
         std::vector<std::pair<std::string, unsigned short>> _nodes;

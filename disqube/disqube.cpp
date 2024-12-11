@@ -12,7 +12,7 @@ int main(int argc, const char* argv[])
     // Qube::QubeInterface itf(true, confFile);
     // itf.qubeDiscovering();
 
-    Qube::Qube qube(confFile);
+    Qube::QubeManager qube(confFile);
     qube.run();
 
     return 0;

@@ -11,7 +11,7 @@ namespace Qube
 {
     class Qube
     {
-    private:
+    protected:
         struct
         {
             int tcperror_l; // Error for TCP listener
@@ -35,8 +35,10 @@ namespace Qube
         void handleDiagnosticErrors(const int result); // Handle diagnostic results in case of errors
 
         void init();     // The initial method (INIT State of State Machine)
-        void discover(); // The discover state (DISCOVERING State of the State Machine)
         void shutdown(); // The shutdown state
+
+        virtual void discover() = 0;
+        virtual void operative() = 0;
 
     public:
         Qube(const std::string &confFile) : _confFile(confFile), _shutdownFlag(false)
@@ -49,6 +51,32 @@ namespace Qube
         bool isMaster() const;                   // Check if the current qube is a master
         bool isDiscoverEnabledAtStartup() const; // Flag indicating discovering protocol actuation
         void run();                              // The main method of the Qube
+    };
+
+    class QubeManager : public Qube
+    {
+    private:
+        void discover() override; // The discover state (DISCOVERING State of the State Machine)
+        void operative() override; // The operative state
+
+    public:
+        QubeManager(const std::string &confFile) : Qube(confFile) 
+        {
+            setMasterFlag(true);
+        };
+    };
+
+    class QubeWorker : public Qube
+    {
+    private:
+        void discover() override = 0; // The discover state (DISCOVERING State of the State Machine)
+        void operative() override;
+
+    public:
+        QubeWorker(const std::string &confFile) : Qube(confFile) 
+        {
+            setMasterFlag(false);
+        };
     };
 };
 

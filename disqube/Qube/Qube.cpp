@@ -142,13 +142,6 @@ void Qube::Qube::init()
     this->_stateMachine->update(this->_qubeData);
 }
 
-void Qube::Qube::discover()
-{
-    this->_itf->qubeDiscovering();
-    this->_qubeData.shutdown = true;
-    this->_stateMachine->update(this->_qubeData);
-}
-
 void Qube::Qube::shutdown()
 {
     this->_logger->info("Starting to shutdown the Qube Manager");
@@ -190,4 +183,21 @@ void Qube::Qube::run()
                 break;
         }
     }
+}
+
+void Qube::QubeManager::discover()
+{
+    this->_itf->qubeDiscovering();
+    this->_qubeData.shutdown = true;
+    this->_stateMachine->update(this->_qubeData);
+}
+
+void Qube::QubeManager::operative()
+{
+
+}
+
+void Qube::QubeWorker::operative()
+{
+    
 }
