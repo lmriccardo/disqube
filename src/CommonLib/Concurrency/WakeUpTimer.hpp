@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _WAKEUP_TIMER_H
+#define _WAKEUP_TIMER_H
 
 #include <semaphore.h>
 #include <CommonLib/Concurrency/AbstractTimerable.hpp>
@@ -19,7 +20,7 @@ namespace Lib::Concurrency
         
     public:
         WakeUpTimer(unsigned int time_us);
-        virtual ~WakeUpTimer();
+        ~WakeUpTimer();
 
         void wait();
         double getCurrentTime_s() const;
@@ -31,3 +32,5 @@ namespace Lib::Concurrency
 
     typedef std::shared_ptr<WakeUpTimer> WakeUpTimer_ptr;
 }
+
+#endif

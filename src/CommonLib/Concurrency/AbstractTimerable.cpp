@@ -23,7 +23,7 @@ AbstractTimerable::AbstractTimerable(const std::string &name, unsigned int timeo
 
 AbstractTimerable::~AbstractTimerable()
 {
-    if (isJoinable()) join(); // Join the running thread
+    stop(); // Stop the running thread
 
     // Destroy the timer
     if (timer_delete(m_Timer) != 0)
@@ -35,7 +35,7 @@ AbstractTimerable::~AbstractTimerable()
 void AbstractTimerable::setTimerTrigger(unsigned int trigger_us)
 {
     unsigned int tmpvar = (trigger_us > m_Timeout_us) ? trigger_us : m_Timeout_us;
-    m_MaxTimeoutCounter = m_Timeout_us / tmpvar;
+    m_MaxTimeoutCounter = tmpvar / m_Timeout_us;
     m_TimeoutStepCounter = m_MaxTimeoutCounter;
 }
 
@@ -89,9 +89,9 @@ void AbstractTimerable::run()
     }
 
     bool result;
-    m_Running = true; // Set that the thread has started running
+    m_Running.store(true); // Set that the thread has started running
 
-    while (1)
+    while (m_Running.load())
     {
         // Wait for an internal timer synchronization
         if ((recvSig = sigwaitinfo(&timerMask, &sigInfo)) < 0)
@@ -111,19 +111,22 @@ void AbstractTimerable::run()
         }
 
         // If it is all okay, call the tick function
-        result = tick();
-        if (!result) continue;
-
-        // Otherwise call the callback function
-        callback();
+        if (tick()) 
+        {
+            callback(); // Call the callback function
+        }
     }
-
-    m_Running = false; // Set that the thread has stopped running
 }
 
 bool AbstractTimerable::isRunning() const
 {
-    return m_Running;
+    return m_Running.load();
+}
+
+void AbstractTimerable::stop()
+{
+    m_Running.store(false);
+    if (isJoinable()) join(); // Join the running thread
 }
 
 void AbstractTimerable::prepareSignals()

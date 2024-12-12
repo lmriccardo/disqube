@@ -3,21 +3,21 @@ cmake_minimum_required(VERSION 3.10)
 project(libdisqube)
 
 file(GLOB_RECURSE LIB_SOURCES
-    disqube/*.cpp
+    src/*.cpp
 )
 
 file(GLOB_RECURSE LIB_HEADERS
-    disqube/*.hpp
+    src/*.hpp
 )
 
 add_library(disqube STATIC ${LIB_SOURCES} ${LIB_HEADERS})
 
 target_include_directories(disqube PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/disqube>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:include>
 )
 
-add_executable(Main disqube/disqube.cpp)
+add_executable(Main src/disqube.cpp)
 target_link_libraries(Main PRIVATE disqube)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -53,4 +53,6 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/test")
     add_test(NAME InterfaceTest COMMAND interface_test)
     add_test(NAME LoggingTest COMMAND logging_test)
     add_test(NAME StateMachineTest COMMAND state_machine_test)
+    add_test(NAME ProgressBarTest COMMAND progress_bar_test)
+    add_test(NAME TimerTest COMMAND timer_test)
 endif()

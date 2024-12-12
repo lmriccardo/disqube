@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _ABSTRACT_TIMER_H
+#define _ABSTRACT_TIMER_H
 
 #include <iostream>
 #include <cstring>
@@ -11,6 +12,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <signal.h>
+#include <atomic>
 
 #include <CommonLib/Concurrency/Thread.hpp>
 
@@ -26,7 +28,7 @@ namespace Lib::Concurrency
         unsigned int m_Timeout_us;         // Base Timeout in milliseconds
         unsigned int m_MaxTimeoutCounter;  // Number of base ticks up to timeout
         unsigned int m_TimeoutStepCounter; // Current step counter
-        bool m_Running;                    // True if the thread is running, false otherwise
+        std::atomic<bool> m_Running;       // True if the thread is running, false otherwise
 
         timer_t m_Timer; // The actual timer
 
@@ -42,7 +44,10 @@ namespace Lib::Concurrency
         void setTimerTrigger(unsigned int trigger_us);
         void run() override;
         bool isRunning() const override;
+        void stop();
 
         static void prepareSignals();
     };
 }
+
+#endif
