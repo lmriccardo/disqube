@@ -1,8 +1,8 @@
 {
     "files.associations": {
+        "*.h": "c",
         "*.tsv": "tsv",
         "*.i": "swig",
-        "*.h": "c",
         "array": "cpp",
         "atomic": "cpp",
         "bit": "cpp",
@@ -67,6 +67,7 @@
         "codecvt": "cpp",
         "regex": "cpp",
         "fstream": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "map": "cpp"
     }
 }

@@ -2,6 +2,7 @@
 
 namespace sm = Qube::StateManager;
 namespace net = Lib::Network;
+namespace conc = Lib::Concurrency;
 
 unsigned int Qube::Qube::generateId()
 {
@@ -140,6 +141,11 @@ void Qube::Qube::init()
     this->handleDiagnosticErrors(result);
     this->_qubeData.shutdown = true;
     this->_stateMachine->update(this->_qubeData);
+
+    // Create the timer
+    unsigned int time_us = _conf->getReceptionTimer_ms() * 1000;
+    _timer = std::make_shared<conc::WakeUpTimer>(time_us);
+    _timer->start();
 }
 
 void Qube::Qube::shutdown()
@@ -199,5 +205,10 @@ void Qube::QubeManager::operative()
 
 void Qube::QubeWorker::operative()
 {
-    
+    this->_timer->resetTimeout();
+
+    while (1)
+    {
+        this->_timer->wait(); // Wait for the wake up signal
+    }
 }

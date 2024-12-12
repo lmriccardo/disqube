@@ -200,6 +200,16 @@ std::size_t Configuration::DisqubeConfiguration::getUdpMaxCapacityQueue() const
     return (std::size_t)std::stoi(this->getConfigurationValue("Network", "UDP_CAPACITY_QUEUE"));
 }
 
+unsigned int Configuration::DisqubeConfiguration::getReceptionTimer_ms() const
+{
+    return (unsigned int)std::stoi(this->getConfigurationValue("Operative", "RECEPTION_TIMER"));
+}
+
+unsigned int Configuration::DisqubeConfiguration::getOperativeTimeout_ms() const
+{
+    return (unsigned int)std::stoi(this->getConfigurationValue("Operative", "OPERATIVE_TIMEOUT"));
+}
+
 bool Configuration::DisqubeConfiguration::getLogOnFile() const
 {
     int value = std::stoi(this->getConfigurationValue("Logging", "LOG_ON_FILE"));

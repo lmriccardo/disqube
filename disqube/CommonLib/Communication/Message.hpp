@@ -32,6 +32,12 @@ namespace Lib::Network
             DISCOVER_RESPONSE = 2 // A response message for the HELLO
         };
 
+        const static unsigned int MSG_COUNTER_OFFSET = 0;
+        const static unsigned int MSG_ID_OFFSET = 2;
+        const static unsigned int MSG_TYPE_OFFSET = 4;
+        const static unsigned int MSG_SUBTYPE_OFFSET = 5;
+        const static unsigned int MSG_PROTO_FLAG_OFFSET = 6;
+
     protected:
         MessageType _type;
         MessageSubType _subType;
@@ -81,6 +87,8 @@ namespace Lib::Network
 
         virtual void encode() = 0;
         virtual void decode() = 0;
+
+        static const MessageSubType fetchMessageSubType(const ByteBuffer_ptr& buffer);
     };
 
     // The data received from a socket will be put into a structure

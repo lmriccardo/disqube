@@ -45,7 +45,18 @@ bool Qube::QubeMessageReceiver::isRunning() const
 void Qube::QubeMessageReceiver::stop()
 {
     this->_sigstop = true;
-    if (this->isJoinable()) this->join();
+    if (this->isJoinable())
+        this->join();
+}
+
+net::ReceivedData Qube::QubeMessageReceiver::getReceivedData()
+{
+    return this->_queue->pop();
+}
+
+const std::size_t Qube::QubeMessageReceiver::getCurrentQueueSize() const
+{
+    return this->_queue->getNofElements();
 }
 
 void Qube::QubeInterface::initUdpInterface(const std::string &ip)
@@ -175,8 +186,7 @@ void Qube::QubeInterface::qubeDiscovering()
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     };
 
-    Logging::ProgressBar::display(info.first, info.last + 1, 1,
-                                  "Seding Discover Hello Msg", discover_fn);
+    Logging::ProgressBar::display(info.first, info.last + 1, 1, "Seding Discover Hello Msg", discover_fn);
 }
 
 void Qube::QubeInterface::interfaceDiagnosticCheck()
@@ -194,4 +204,31 @@ net::DiagnosticCheckResult *Qube::QubeInterface::getUdpDiagnosticResult()
 net::DiagnosticCheckResult *Qube::QubeInterface::getTcpDiagnosticResult()
 {
     return this->_tcpitf->getDiagnosticResult();
+}
+
+void Qube::QubeInterface::receiveAllMessage()
+{
+    const std::size_t currSize = this->_receiver->getCurrentQueueSize();
+    for (std::size_t idx = 0; idx < currSize; idx++)
+    {
+        net::ReceivedData data = this->_receiver->getReceivedData();
+        processMessage(data);
+    }
+}
+
+void Qube::QubeInterface::processMessage(net::ReceivedData &recvData)
+{
+    net::ByteBuffer_ptr buffer = recvData.data;
+    struct sockaddr_in *src = recvData.src;
+
+    // Needs to check the message subtype
+    switch (net::Message::fetchMessageSubType(buffer))
+    {
+    case net::Message::MessageSubType::DISCOVER_HELLO:
+        /* code */
+        break;
+
+    default:
+        break;
+    }
 }

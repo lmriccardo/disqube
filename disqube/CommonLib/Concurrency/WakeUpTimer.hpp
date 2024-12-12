@@ -12,6 +12,7 @@ namespace Lib::Concurrency
         typedef std::chrono::_V2::high_resolution_clock::time_point time_point_t;
 
         time_point_t m_Start; // The starting time
+        time_point_t m_StartTimeout; // The timeout starting time
         sem_t m_WaitSem; // The waiting semaphore
 
         void callback() override;
@@ -24,5 +25,9 @@ namespace Lib::Concurrency
         double getCurrentTime_s() const;
         double getCurrentTime_us() const;
         double getElapsedTime() const;
+        bool checkTimeout(unsigned int timeout_ms) const;
+        void resetTimeout();
     };
+
+    typedef std::shared_ptr<WakeUpTimer> WakeUpTimer_ptr;
 }

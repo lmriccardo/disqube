@@ -85,6 +85,13 @@ void Message::setMessageProtocol(const MessageProto &proto)
     _flag = (static_cast<uint8_t>(_proto) + 1) << 6; // Set the protocol flags
 }
 
+const Message::MessageSubType Message::fetchMessageSubType(const ByteBuffer_ptr& buffer)
+{
+    uint8_t *msgSubtype = nullptr;
+    buffer->getBuffer(msgSubtype, Message::MSG_SUBTYPE_OFFSET, Message::BYTE_SIZE);
+    return static_cast<Message::MessageSubType>(*msgSubtype);
+}
+
 const std::string &SimpleMessage::getMessage() const
 {
     return this->_msg;

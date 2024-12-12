@@ -34,6 +34,9 @@ namespace Qube
         void run() override;
         bool isRunning() const override;
         void stop();
+
+        Lib::Network::ReceivedData getReceivedData();
+        const std::size_t getCurrentQueueSize() const;
     };
 
     typedef std::shared_ptr<QubeMessageReceiver> QubeMessageReceiver_ptr;
@@ -91,6 +94,9 @@ namespace Qube
 
         Lib::Network::DiagnosticCheckResult *getUdpDiagnosticResult(); // Obtain result from UDP
         Lib::Network::DiagnosticCheckResult *getTcpDiagnosticResult(); // Obtain result from TCP
+
+        void receiveAllMessage(); // Receive and handle all messages
+        void processMessage(Lib::Network::ReceivedData& recvData); // Process the received message
     };
 
     typedef std::shared_ptr<QubeInterface> QubeInterface_ptr;

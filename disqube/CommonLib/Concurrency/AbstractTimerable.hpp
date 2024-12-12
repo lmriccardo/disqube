@@ -26,6 +26,7 @@ namespace Lib::Concurrency
         unsigned int m_Timeout_us;         // Base Timeout in milliseconds
         unsigned int m_MaxTimeoutCounter;  // Number of base ticks up to timeout
         unsigned int m_TimeoutStepCounter; // Current step counter
+        bool m_Running;                    // True if the thread is running, false otherwise
 
         timer_t m_Timer; // The actual timer
 
@@ -35,10 +36,13 @@ namespace Lib::Concurrency
         bool tick();
 
     public:
-        AbstractTimerable(const std::string& name, unsigned int timeout_us);
+        AbstractTimerable(const std::string &name, unsigned int timeout_us);
         virtual ~AbstractTimerable();
 
         void setTimerTrigger(unsigned int trigger_us);
         void run() override;
+        bool isRunning() const override;
+
+        static void prepareSignals();
     };
 }

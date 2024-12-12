@@ -13,6 +13,7 @@ void WakeUpTimer::callback()
 WakeUpTimer::WakeUpTimer(unsigned int time_us) : AbstractTimerable("WakeUpTimer", time_us) 
 {
     m_Start = std::chrono::high_resolution_clock::now();
+    m_StartTimeout = m_Start;
 
     if (sem_init(&m_WaitSem, 0, 0) != 0)
     {
@@ -53,4 +54,19 @@ double WakeUpTimer::getElapsedTime() const
     time_point_t end = std::chrono::high_resolution_clock::now();
     auto duration = end - m_Start;
     return std::chrono::duration<double>(duration).count();
+}
+
+bool WakeUpTimer::checkTimeout(unsigned int timeout_ms) const
+{
+    time_point_t end = std::chrono::high_resolution_clock::now();
+    auto duration = end - m_StartTimeout;
+    auto millisec = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+
+    // Check if the timeout has expired
+    return millisec.count() >= timeout_ms;
+}
+
+void WakeUpTimer::resetTimeout()
+{
+    m_StartTimeout = std::chrono::high_resolution_clock::now();
 }

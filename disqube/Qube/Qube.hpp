@@ -1,6 +1,7 @@
 #ifndef _QUBE_H
 #define _QUBE_H
 
+#include <CommonLib/Concurrency/WakeUpTimer.hpp>
 #include <Qube/StateManager/State.hpp>
 #include <Qube/StateManager/StateMachine.hpp>
 #include <Qube/QubeInterface.hpp>
@@ -25,9 +26,11 @@ namespace Qube
         StateManager::Transition::Input_t _qubeData;   // Some informations for state machine
         Configuration::DisqubeConfiguration_ptr _conf; // General configuration
         Logging::DisqubeLogger_ptr _logger;            // A single prompt/file Logger
-        bool _shutdownFlag;                            // A shutdown flag
-        std::string _confFile;                         // The configuration file path
-        bool _isMaster;                                // If the current qube is a master or not
+        Lib::Concurrency::WakeUpTimer_ptr _timer;      // The wake up timer
+
+        bool _shutdownFlag;    // A shutdown flag
+        std::string _confFile; // The configuration file path
+        bool _isMaster;        // If the current qube is a master or not
 
         static unsigned int generateId();              // Generates the ID for logging
         void initStateMachine();                       // Initialize the state machine
@@ -56,11 +59,11 @@ namespace Qube
     class QubeManager : public Qube
     {
     private:
-        void discover() override; // The discover state (DISCOVERING State of the State Machine)
+        void discover() override;  // The discover state (DISCOVERING State of the State Machine)
         void operative() override; // The operative state
 
     public:
-        QubeManager(const std::string &confFile) : Qube(confFile) 
+        QubeManager(const std::string &confFile) : Qube(confFile)
         {
             setMasterFlag(true);
         };
@@ -70,10 +73,10 @@ namespace Qube
     {
     private:
         void discover() override = 0; // The discover state (DISCOVERING State of the State Machine)
-        void operative() override;
+        void operative() override; // The operative state for the Qube worker
 
     public:
-        QubeWorker(const std::string &confFile) : Qube(confFile) 
+        QubeWorker(const std::string &confFile) : Qube(confFile)
         {
             setMasterFlag(false);
         };

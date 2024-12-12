@@ -59,6 +59,10 @@ namespace Configuration
             std::size_t getTcpMaxCapacityQueue() const;
             std::size_t getTcpMaxNumOfConnections() const;
             std::size_t getUdpMaxCapacityQueue() const;
+
+            // Operative configuration
+            unsigned int getReceptionTimer_ms() const;
+            unsigned int getOperativeTimeout_ms() const;
             
             // Logging configuration
             bool getLogOnFile() const;

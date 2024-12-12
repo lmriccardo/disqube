@@ -89,6 +89,7 @@ void AbstractTimerable::run()
     }
 
     bool result;
+    m_Running = true; // Set that the thread has started running
 
     while (1)
     {
@@ -115,5 +116,33 @@ void AbstractTimerable::run()
 
         // Otherwise call the callback function
         callback();
+    }
+
+    m_Running = false; // Set that the thread has stopped running
+}
+
+bool AbstractTimerable::isRunning() const
+{
+    return m_Running;
+}
+
+void AbstractTimerable::prepareSignals()
+{
+    sigset_t MainMask;
+
+    if (sigemptyset(&MainMask) != 0)
+    {
+        throw std::runtime_error("PrepareSignals - sigemptyset Error");
+    }
+
+    if (sigaddset(&MainMask, TIMER_SIGNAL) != 0)
+    {
+        throw std::runtime_error("PrepareSignals - sigaddset Error");
+    }
+
+    // Examine and change mask of blocked signals
+    if (pthread_sigmask(SIG_SETMASK, &MainMask, NULL) != 0)
+    {
+        throw std::runtime_error("PrepareSignals - pthread_sigmask Error");
     }
 }
