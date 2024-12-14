@@ -17,13 +17,16 @@ target_include_directories(disqube PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-add_executable(Main src/disqube.cpp)
-target_link_libraries(Main PRIVATE disqube)
-
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(REUSE_MODE=1)
     add_compile_definitions(DEBUG_MODE=1)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_options(-Wall -Wextra -pedantic -O3)
 endif()
+
+add_executable(Main src/disqube.cpp)
+target_link_libraries(Main PRIVATE disqube)
+
 
 install(TARGETS disqube
     EXPORT disqubeExport

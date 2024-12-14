@@ -13,6 +13,7 @@ add_executable(logging_test ../test/logging.cpp)
 add_executable(state_machine_test ../test/state.cpp)
 add_executable(progress_bar_test ../test/progbar.cpp)
 add_executable(timer_test ../test/timer.cpp)
+add_executable(argparse_test ../test/argparser.cpp)
 
 # Linking executables to the distributed libraries
 target_link_libraries(bb_test PRIVATE disqube)
@@ -27,3 +28,4 @@ target_link_libraries(logging_test PRIVATE disqube)
 target_link_libraries(state_machine_test PRIVATE disqube)
 target_link_libraries(progress_bar_test PRIVATE disqube)
 target_link_libraries(timer_test PRIVATE disqube)
+target_link_libraries(argparse_test PRIVATE disqube)
