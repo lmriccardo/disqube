@@ -18,6 +18,18 @@ namespace Lib::CLI
             std::string pattern = TemplateCliArgument<bool>::getPatternMatch();
             return pattern + "?";
         }
+
+        void setValue(const std::string& value) override 
+        {
+            m_Value = (value.compare("true") == 0);
+            m_HasValue = true;
+        }
+
+        void setValue()
+        {
+            if (!m_HasValue) m_Value = !m_DefaultValue;
+            m_HasValue = true;
+        }
     };
 
     class IntegerArgument : public TemplateCliArgument<int>
@@ -32,11 +44,17 @@ namespace Lib::CLI
             if (!isRequired())
             {
                 std::string pattern = TemplateCliArgument<int>::getPatternMatch();
-                pattern = pattern + "(=|\\s+)\\d+";
-                return "(" + pattern + ")?";
+                pattern = pattern + "(?:=|\\s+)(\\d+)";
+                return "(?:" + pattern + ")?";
             }
 
-            return "\\d+";
+            return "(\\d+)";
+        }
+
+        void setValue(const std::string& value) override 
+        {
+            m_Value = std::stoi(value);
+            m_HasValue = true;
         }
     };
 
@@ -52,11 +70,17 @@ namespace Lib::CLI
             if (!isRequired())
             {
                 std::string pattern = TemplateCliArgument<std::string>::getPatternMatch();
-                pattern = pattern + "(=|\\s+)[a-zA-Z0-9]+";
-                return "(" + pattern + ")?";
+                pattern = pattern + "(?:=|\\s+)([\\w\\./_\\\\-]+)";
+                return "(?:" + pattern + ")?";
             }
 
-            return "([[:print:]]+)";
+            return "([\\w\\./_\\\\-]+)";
+        }
+
+        void setValue(const std::string& value) override 
+        {
+            m_Value = value;
+            m_HasValue = true;
         }
     };
 
@@ -72,11 +96,17 @@ namespace Lib::CLI
             if (!isRequired())
             {
                 std::string pattern = TemplateCliArgument<double>::getPatternMatch();
-                pattern = pattern + "(=|\\s+)\\d+\\.{1}\\d+";
-                return "(" + pattern + ")?";
+                pattern = pattern + "(?:=|\\s+)(\\d+\\.\\d+)";
+                return "(?:" + pattern + ")?";
             }
 
-            return "\\d+\\.{1}\\d+";
+            return "(\\d+\\.{1}\\d+)";
+        }
+
+        void setValue(const std::string& value) override 
+        {
+            m_Value = std::stod(value);
+            m_HasValue = true;
         }
     };
 }

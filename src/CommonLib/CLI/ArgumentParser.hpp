@@ -38,15 +38,22 @@ namespace Lib::CLI
         std::vector<CliArgumentInterface *> m_RequiredArgs; // Command line arguments
         std::vector<CliArgumentInterface *> m_OptionalArgs; // Optional command line arguments
 
-        std::unordered_map<std::string, ArgumentType> m_ArgtypeMap; // Maps command line name to their type
+        std::unordered_map<std::string, ArgumentType> m_ArgtypeMap;       // Maps command line name to their type
+        std::unordered_map<std::string, CliArgumentInterface *> m_ArgMap; // Maps command line name to their type
 
-        std::string m_Name;            // The name of the executable
+        std::string m_Name; // The name of the executable
 
-        void prettify() const;               // Pretty printing of command line options
-        std::string combinePatterns() const; // Combine the patterns of all arguments
+        void prettify() const;                               // Pretty printing of command line options
+        std::string combinePatterns() const;                 // Combine the patterns of all arguments
+        void handleMatchingGroups(const std::smatch &match); // Handles matching groups
+
+        void continueIfExists(const std::string &name) const;
+        bool checkArgumentType(const std::string &name, const ArgumentType &type) const;
+        void continueIfNoErrors(const std::string &name, const ArgumentType &type) const;
 
     public:
         ArgumentParser(const char *name) : m_Name(name) {};
+        ArgumentParser(const std::string& name) : m_Name(name) {};
         ~ArgumentParser();
 
         void addBooleanArgument(const ParserArgument_t &args, bool default_value = false);
@@ -56,12 +63,16 @@ namespace Lib::CLI
 
         const std::string &getProgramName() const;
         void printUsage() const;
-        void parse(int argc, char **argv);
+        void parse(int argc, const char **argv);
 
-        void printPatterns()
-        {
-            std::cout << combinePatterns() << std::endl;
-        }
+        bool getBoolean(const std::string &name) const;
+        std::string getString(const std::string &name) const;
+        int getInteger(const std::string &name) const;
+        double getDouble(const std::string &name) const;
+        void clean();
+
+        ArgumentParser(const ArgumentParser& other) = delete; // Delete the copy constructor
+        ArgumentParser& operator=(const ArgumentParser& other) = delete; // Delete also the operator =
     };
 }
 

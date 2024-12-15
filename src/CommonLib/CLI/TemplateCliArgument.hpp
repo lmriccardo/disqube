@@ -17,8 +17,10 @@ namespace Lib::CLI
         std::string m_ShortName; // The parameter shorted name
         std::string m_Help;      // The help string
         T m_DefaultValue;        // The default value of the parameter
+        T m_Value;               // The final value
 
         bool m_Required = false; // If the parameter is required or not
+        bool m_HasValue = false; // If the argument has also the value (not just the default one)
 
     public:
         TemplateCliArgument(const std::string &name) : m_Name(name), m_ShortName("")
@@ -45,10 +47,16 @@ namespace Lib::CLI
         const std::string& getArgumentShortName() const override { return m_ShortName; }
         const std::string& getArgumentDescription() const override { return m_Help; }
         bool hasShortName() const override { return m_ShortName.size() > 0; }
+        bool hasValue() const override { return m_HasValue; }
+
+        T getValue() const
+        {
+            if (!hasValue()) return m_DefaultValue;
+            return m_Value;
+        }
 
         virtual std::string getPatternMatch()
         {
-            // Generic pattern is (-<short_name>|--<name>)=?\s*
             if (isRequired()) return "";
 
             std::string pattern;
@@ -59,6 +67,11 @@ namespace Lib::CLI
             
             // If the argument has also the short name we need to include it
             return "(-" + getArgumentShortName() + "|" + pattern + ")";
+        }
+
+        void clean() override
+        {
+            m_HasValue = false;
         }
     };
 }

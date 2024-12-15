@@ -18,6 +18,9 @@ namespace Lib::CLI
         virtual const std::string& getArgumentDescription() const = 0;
         virtual std::string getPatternMatch() = 0;
         virtual bool hasShortName() const = 0;
+        virtual bool hasValue() const = 0;
+        virtual void setValue(const std::string& value) = 0;
+        virtual void clean() = 0;
     };
 }
 

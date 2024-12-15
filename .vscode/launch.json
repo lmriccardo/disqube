@@ -8,7 +8,7 @@
             "name": "disqube debugging",
             "type": "cppdbg",
             "request": "launch",
-            "miDebuggerServerAddress": "172.30.20.1:1234",
+            "miDebuggerServerAddress": "0.0.0.0:1234",
             "miDebuggerPath": "/usr/bin/gdb",
             "program": "${workspaceFolder}/build/Main",
             "cwd": "${workspaceFolder}",
