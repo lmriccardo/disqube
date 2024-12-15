@@ -1,3 +1,4 @@
 build/
 **/distributed.vpp.*
 log/
+bin/

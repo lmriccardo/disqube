@@ -42,6 +42,7 @@ namespace Qube
 
         virtual void discover() = 0;
         virtual void operative() = 0;
+        virtual void processMessage(const Lib::Network::ReceivedData &recvData) = 0;
 
     public:
         Qube(const std::string &confFile) : _confFile(confFile), _shutdownFlag(false)
@@ -62,6 +63,8 @@ namespace Qube
         void discover() override;  // The discover state (DISCOVERING State of the State Machine)
         void operative() override; // The operative state
 
+        void processMessage(const Lib::Network::ReceivedData &recvData) override;
+
     public:
         QubeManager(const std::string &confFile) : Qube(confFile)
         {
@@ -72,8 +75,11 @@ namespace Qube
     class QubeWorker : public Qube
     {
     private:
-        void discover() override = 0; // The discover state (DISCOVERING State of the State Machine)
+        void discover() override {}; // The discover state (DISCOVERING State of the State Machine)
         void operative() override; // The operative state for the Qube worker
+
+        void processMessage(const Lib::Network::ReceivedData &recvData) override;
+        void handleDiscoverHello(Lib::Network::ByteBuffer_ptr& buffer);
 
     public:
         QubeWorker(const std::string &confFile) : Qube(confFile)

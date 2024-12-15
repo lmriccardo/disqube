@@ -206,29 +206,8 @@ net::DiagnosticCheckResult *Qube::QubeInterface::getTcpDiagnosticResult()
     return this->_tcpitf->getDiagnosticResult();
 }
 
-void Qube::QubeInterface::receiveAllMessage()
+Qube::MessageIterator Qube::QubeInterface::receiveAllMessage()
 {
     const std::size_t currSize = this->_receiver->getCurrentQueueSize();
-    for (std::size_t idx = 0; idx < currSize; idx++)
-    {
-        net::ReceivedData data = this->_receiver->getReceivedData();
-        processMessage(data);
-    }
-}
-
-void Qube::QubeInterface::processMessage(net::ReceivedData &recvData)
-{
-    net::ByteBuffer_ptr buffer = recvData.data;
-    struct sockaddr_in *src = recvData.src;
-
-    // Needs to check the message subtype
-    switch (net::Message::fetchMessageSubType(buffer))
-    {
-    case net::Message::MessageSubType::DISCOVER_HELLO:
-        /* code */
-        break;
-
-    default:
-        break;
-    }
+    return Qube::MessageIterator(0, currSize, this->_receiver);
 }

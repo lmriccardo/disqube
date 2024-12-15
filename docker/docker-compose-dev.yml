@@ -16,8 +16,6 @@ services:
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
-    deploy:
-      replicas: 3
 
 # Definition of custom networks
 networks:

@@ -41,6 +41,42 @@ namespace Qube
 
     typedef std::shared_ptr<QubeMessageReceiver> QubeMessageReceiver_ptr;
 
+    class MessageIterator
+    {
+    private:
+        int m_Current, m_End; // The current and end index
+        QubeMessageReceiver_ptr m_Receiver; // A pointer to the Qube message receiver
+    
+    public:
+        MessageIterator() : m_Current(0), m_End(0), m_Receiver(nullptr) {};
+        MessageIterator(int start, int end, QubeMessageReceiver_ptr& recv)
+            : m_Current(start), m_End(end), m_Receiver(recv) {};
+
+        class Iterator
+        {
+        public:
+            int value; // Current value of the iterator
+            QubeMessageReceiver_ptr recv; // Message Receiver
+
+            Iterator(int val, QubeMessageReceiver_ptr& receiver) :
+                value(val), recv(receiver) {};
+
+            bool operator!=(const Iterator& other) const { return value != other.value; }
+            bool operator==(const Iterator& other) const { return value == other.value; }
+
+            Iterator& operator++() 
+            { 
+                ++value; 
+                return *this; 
+            }
+
+            Lib::Network::ReceivedData operator*() const { return recv->getReceivedData(); }
+        };
+
+        Iterator begin() { return Iterator(m_Current, m_Receiver); }
+        Iterator end() { return Iterator(m_End, m_Receiver); }
+    };
+
     /**
      * @class Qube::QubeInterface
      *
@@ -95,8 +131,7 @@ namespace Qube
         Lib::Network::DiagnosticCheckResult *getUdpDiagnosticResult(); // Obtain result from UDP
         Lib::Network::DiagnosticCheckResult *getTcpDiagnosticResult(); // Obtain result from TCP
 
-        void receiveAllMessage(); // Receive and handle all messages
-        void processMessage(Lib::Network::ReceivedData& recvData); // Process the received message
+        MessageIterator receiveAllMessage(); // Receive and handle all messages
     };
 
     typedef std::shared_ptr<QubeInterface> QubeInterface_ptr;

@@ -164,7 +164,7 @@ void ArgumentParser::parse(int argc, const char **argv)
     }
 
     // First we need to assemble the entire string using input argv
-    std::string input;
+    std::string input = " ";
     for (int index = 1; index < argc; index++)
     {
         input += std::string(argv[index]);

@@ -10,7 +10,27 @@
             "request": "launch",
             "miDebuggerServerAddress": "0.0.0.0:1234",
             "miDebuggerPath": "/usr/bin/gdb",
-            "program": "${workspaceFolder}/build/Main",
+            "program": "${workspaceFolder}/bin/disqubed",
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false
+        },
+        {
+            "name": "disqube debugging - net1",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerServerAddress": "172.30.20.1:1234",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "program": "${workspaceFolder}/bin/disqubed",
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false
+        },
+        {
+            "name": "disqube debugging - docker container",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerServerAddress": "172.30.10.1:1234",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "program": "${workspaceFolder}/bin/disqubed",
             "cwd": "${workspaceFolder}",
             "externalConsole": false
         }

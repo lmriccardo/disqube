@@ -8,7 +8,7 @@ unsigned int Qube::Qube::generateId()
 {
     auto now = std::chrono::system_clock::now();
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-    std::tm* localTime = std::localtime(&currentTime);
+    std::tm *localTime = std::localtime(&currentTime);
 
     // Take hours, minutes and seconds and returns the id
     int hour = localTime->tm_hour;
@@ -25,16 +25,26 @@ void Qube::Qube::initStateMachine()
     sm::State_ptr s3 = std::make_shared<sm::State>(sm::State::StateType::QUBE_MAINTENANCE, 2);
     sm::State_ptr s4 = std::make_shared<sm::State>(sm::State::StateType::QUBE_SHUTDOWN, 1);
 
-    s0->addTransition(s4, [](sm::Transition::Input_t p){return p.shutdown;});
-    s0->addTransition(s1, [](sm::Transition::Input_t p){return p.itfReady && (p.discoverFlag && p.isMaster);});
-    s0->addTransition(s2, [](sm::Transition::Input_t p){return p.itfReady && !(p.discoverFlag && p.isMaster);});
-    s1->addTransition(s4, [](sm::Transition::Input_t p){return p.shutdown;});
-    s1->addTransition(s2, [](sm::Transition::Input_t p){return p.anyWorker;});
-    s2->addTransition(s4, [](sm::Transition::Input_t p){return p.shutdown;});
-    s2->addTransition(s3, [](sm::Transition::Input_t p){return p.maintenance;});
-    s2->addTransition(s1, [](sm::Transition::Input_t p){return !p.anyWorker && p.isMaster;});
-    s3->addTransition(s4, [](sm::Transition::Input_t p){return p.shutdown;});
-    s3->addTransition(s2, [](sm::Transition::Input_t p){return !p.maintenance;});
+    s0->addTransition(s4, [](sm::Transition::Input_t p)
+                      { return p.shutdown; });
+    s0->addTransition(s1, [](sm::Transition::Input_t p)
+                      { return p.itfReady && (p.discoverFlag && p.isMaster); });
+    s0->addTransition(s2, [](sm::Transition::Input_t p)
+                      { return p.itfReady && !(p.discoverFlag && p.isMaster); });
+    s1->addTransition(s4, [](sm::Transition::Input_t p)
+                      { return p.shutdown; });
+    s1->addTransition(s2, [](sm::Transition::Input_t p)
+                      { return p.anyWorker; });
+    s2->addTransition(s4, [](sm::Transition::Input_t p)
+                      { return p.shutdown; });
+    s2->addTransition(s3, [](sm::Transition::Input_t p)
+                      { return p.maintenance; });
+    s2->addTransition(s1, [](sm::Transition::Input_t p)
+                      { return !p.anyWorker && p.isMaster; });
+    s3->addTransition(s4, [](sm::Transition::Input_t p)
+                      { return p.shutdown; });
+    s3->addTransition(s2, [](sm::Transition::Input_t p)
+                      { return !p.maintenance; });
 
     _stateMachine = std::make_shared<sm::StateMachine>(s0);
 }
@@ -44,11 +54,11 @@ int Qube::Qube::checkDiagnosticResults()
     memset(&this->_error, 0, sizeof(this->_error));
     this->_itf->interfaceDiagnosticCheck();
 
-    net::DiagnosticCheckResult* udpresult = this->_itf->getUdpDiagnosticResult();
-    net::DiagnosticCheckResult* tcpresult = this->_itf->getTcpDiagnosticResult();
+    net::DiagnosticCheckResult *udpresult = this->_itf->getUdpDiagnosticResult();
+    net::DiagnosticCheckResult *tcpresult = this->_itf->getTcpDiagnosticResult();
 
     int result = 0;
-    
+
     // First let's check for UDP results
     if (udpresult->listener_exitOnError)
     {
@@ -83,24 +93,28 @@ void Qube::Qube::handleDiagnosticErrors(const int result)
     std::stringstream ss;
     ss << "Diagnostic Check detected the following errors: " << std::endl;
 
-    if (result & UDP_LISTENER_RUNNING) {
+    if (result & UDP_LISTENER_RUNNING)
+    {
         // If the UDP listener has stop running
         ss << "- UDP Listener exited with error: ";
         ss << strerror(_error.udperror_l) << std::endl;
     }
 
-    if (result & UDP_SENDER_ERROR) {
+    if (result & UDP_SENDER_ERROR)
+    {
         ss << "- UDP Sender raise the following error: ";
         ss << strerror(_error.udperror_s) << std::endl;
     }
 
-    if (result & TCP_LISTENER_RUNNING) {
+    if (result & TCP_LISTENER_RUNNING)
+    {
         // If the TCP listener has stop running
         ss << "- TCP Listener exited with error: ";
         ss << strerror(_error.tcperror_l) << std::endl;
     }
 
-    if (result & TCP_SENDER_ERROR) {
+    if (result & TCP_SENDER_ERROR)
+    {
         ss << "- TCP Sender raise the following error: ";
         ss << strerror(_error.tcperror_s) << std::endl;
     }
@@ -115,7 +129,7 @@ void Qube::Qube::init()
 
     // Create the logger
     _logger = std::make_shared<Logging::DisqubeLogger>(
-        generateId(), _conf->getLogOnFile(), 
+        generateId(), _conf->getLogOnFile(),
         _conf->getLogRootFolder());
 
     // Fill the qube data
@@ -125,7 +139,7 @@ void Qube::Qube::init()
     // Initialize the Qube interface
     _itf = std::make_shared<QubeInterface>(_conf, _logger);
     _itf->start();
-    
+
     // Perform a first diagnostic check
     int result = this->checkDiagnosticResults();
     if (result == 0)
@@ -134,6 +148,11 @@ void Qube::Qube::init()
         this->_logger->info("The Qube Is Ready to proceed.");
         this->_qubeData.itfReady = true;
         this->_stateMachine->update(this->_qubeData);
+
+        // Create the timer
+        unsigned int time_us = _conf->getReceptionTimer_ms() * 1000;
+        _timer = std::make_shared<conc::WakeUpTimer>(time_us);
+        _timer->start();
         return;
     }
 
@@ -141,11 +160,6 @@ void Qube::Qube::init()
     this->handleDiagnosticErrors(result);
     this->_qubeData.shutdown = true;
     this->_stateMachine->update(this->_qubeData);
-
-    // Create the timer
-    unsigned int time_us = _conf->getReceptionTimer_ms() * 1000;
-    _timer = std::make_shared<conc::WakeUpTimer>(time_us);
-    _timer->start();
 }
 
 void Qube::Qube::shutdown()
@@ -176,17 +190,20 @@ void Qube::Qube::run()
     {
         switch (_stateMachine->getCurrentType())
         {
-            case sm::State::StateType::QUBE_INIT:
-                init();
-                break;
-            case sm::State::StateType::QUBE_DISCOVERING:
-                discover();
-                break;
-            case sm::State::StateType::QUBE_SHUTDOWN:
-                shutdown();
-                break;
-            default:
-                break;
+        case sm::State::StateType::QUBE_INIT:
+            init();
+            break;
+        case sm::State::StateType::QUBE_DISCOVERING:
+            discover();
+            break;
+        case sm::State::StateType::QUBE_OPERATIVE:
+            operative();
+            break;
+        case sm::State::StateType::QUBE_SHUTDOWN:
+            shutdown();
+            break;
+        default:
+            break;
         }
     }
 }
@@ -200,7 +217,10 @@ void Qube::QubeManager::discover()
 
 void Qube::QubeManager::operative()
 {
+}
 
+void Qube::QubeManager::processMessage(const net::ReceivedData &recvData)
+{
 }
 
 void Qube::QubeWorker::operative()
@@ -210,5 +230,37 @@ void Qube::QubeWorker::operative()
     while (1)
     {
         this->_timer->wait(); // Wait for the wake up signal
+        MessageIterator it = this->_itf->receiveAllMessage(); // Receives all messages after wake up
+
+        // Process all received messages
+        for (auto message : it)
+        {
+            this->processMessage(message);
+        }
     }
+}
+
+void Qube::QubeWorker::processMessage(const net::ReceivedData &recvData)
+{
+    net::ByteBuffer_ptr buffer = recvData.data;
+    struct sockaddr_in *src = recvData.src;
+
+    // Needs to check the message subtype
+    switch (net::Message::fetchMessageSubType(buffer))
+    {
+    case net::Message::MessageSubType::DISCOVER_HELLO:
+        /* code */
+        handleDiscoverHello(buffer);
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Qube::QubeWorker::handleDiscoverHello(net::ByteBuffer_ptr &buffer)
+{
+    net::DiscoverHelloMessage dhm(*buffer);
+    std::cout << "Tcp Port: " << dhm.getTcpPort() << std::endl;
+    std::cout << "Udp Port: " << dhm.getUdpPort() << std::endl;
 }

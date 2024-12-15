@@ -1,22 +1,20 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(libdisqube)
+# Create the project
+project(DisqubeProject)
 
-file(GLOB_RECURSE LIB_SOURCES
-    src/*.cpp
-)
+# Find all source and header files
+file(GLOB_RECURSE LIB_SOURCES src/*.cpp )
+file(GLOB_RECURSE LIB_HEADERS src/*.hpp )
 
-file(GLOB_RECURSE LIB_HEADERS
-    src/*.hpp
-)
-
+# Create the library called disqube
 add_library(disqube STATIC ${LIB_SOURCES} ${LIB_HEADERS})
-
 target_include_directories(disqube PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:include>
 )
 
+# Add compile definitions and compile options
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(REUSE_MODE=1)
     add_compile_definitions(DEBUG_MODE=1)
@@ -24,25 +22,14 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-Wall -Wextra -pedantic -O3)
 endif()
 
-add_executable(Main src/disqube.cpp)
-target_link_libraries(Main PRIVATE disqube)
+# Add the main executable and link libraries
+add_executable(disqubed src/disqube.cpp)
+target_link_libraries(disqubed PRIVATE disqube)
 
+# Store the binary into the bin folder
+set_target_properties(disqubed PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
-install(TARGETS disqube
-    EXPORT disqubeExport
-    DESTINATION lib
-)
-
-install(FILES ${LIB_HEADERS}
-    DESTINATION include
-)
-
-install(EXPORT disqubeExport
-    FILE disqubeConfig.cmake
-    NAMESPACE disqube::
-    DESTINATION lib/cmake/disqube
-)
-
+# Add tests
 if(EXISTS "${CMAKE_SOURCE_DIR}/test")
     add_subdirectory(test)
 
