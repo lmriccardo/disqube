@@ -1,11 +1,11 @@
 -- Common Header of all packets
 CommonHeader = {}
 
-F_id      = ProtoField.uint16("Discover_hello.id", "ID", base.DEC)
-F_counter = ProtoField.uint16("Discover_hello.counter", "MSG COUNTER", base.DEC)
-F_flag    = ProtoField.uint8 ("Discover_hello.flag", "PROTOCOL FLAG", base.BIN)
-F_subtype = ProtoField.uint8 ("Discover_hello.subtype", "SUBTYPE", base.DEC)
-F_type    = ProtoField.uint8 ("Discover_hello.type", "TYPE", base.DEC)
+F_id      = ProtoField.uint16("CommonHeader.id", "ID", base.DEC)
+F_counter = ProtoField.uint16("CommonHeader.counter", "MSG COUNTER", base.DEC)
+F_flag    = ProtoField.uint8 ("CommonHeader.flag", "PROTOCOL FLAG", base.BIN)
+F_subtype = ProtoField.uint8 ("CommonHeader.subtype", "SUBTYPE", base.DEC)
+F_type    = ProtoField.uint8 ("CommonHeader.type", "TYPE", base.DEC)
 
 function CommonHeader.define_fields()
     return {F_id, F_counter, F_flag, F_subtype, F_type}

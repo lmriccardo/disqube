@@ -23,8 +23,6 @@ WakeUpTimer::WakeUpTimer(unsigned int time_us) : AbstractTimerable("WakeUpTimer"
 
 WakeUpTimer::~WakeUpTimer()
 {
-    stop(); // Stop the running thread
-
     if (sem_destroy(&m_WaitSem) != 0)
     {
         printf("Error: %s - sem_destroy %s\n", __FUNCTION__, std::strerror(errno));

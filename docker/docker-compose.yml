@@ -10,9 +10,6 @@ services:
       - qubenet
     volumes:
       - ../test/pcap:/usr/disqube/pcap
-      - ../bin:/usr/disqube/bin2
-    ports:
-      - "1234:1234"
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN

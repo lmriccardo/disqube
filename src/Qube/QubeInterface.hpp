@@ -6,6 +6,7 @@
 #include <memory>
 #include <CommonLib/Communication/Interface.hpp>
 #include <CommonLib/Communication/Message.hpp>
+#include <CommonLib/System/Metrics.hpp>
 #include <Configuration/Configuration.hpp>
 #include <Logging/DisqubeLogger.hpp>
 #include <Logging/ProgressBar.hpp>
@@ -77,6 +78,13 @@ namespace Qube
         Iterator end() { return Iterator(m_End, m_Receiver); }
     };
 
+    struct QubeMasterInfo
+    {
+        unsigned int   addr;     // The IP address number of master
+        unsigned short udp_port; // The UDP Port of the master qube
+        unsigned short tcp_port; // The TCP Port of the master qube
+    };
+
     /**
      * @class Qube::QubeInterface
      *
@@ -106,9 +114,6 @@ namespace Qube
         Logging::DisqubeLogger_ptr _logger;                  // Generic logging class
         bool _isMaster;                                      // Master Qube interface or not.
 
-        // A list of pair (ip, port no) for each node connected.
-        std::vector<std::pair<std::string, unsigned short>> _nodes;
-
         void initUdpInterface(const std::string &ip);
         void initTcpInterface(const std::string &ip);
         void logInit();
@@ -132,6 +137,11 @@ namespace Qube
         Lib::Network::DiagnosticCheckResult *getTcpDiagnosticResult(); // Obtain result from TCP
 
         MessageIterator receiveAllMessage(); // Receive and handle all messages
+
+        void sendDiscoverResponse(const Lib::System::SystemMetrics* metrics,
+                                  const unsigned short counter,
+                                  const unsigned short id,
+                                  const QubeMasterInfo* master); // Sends discover response message
     };
 
     typedef std::shared_ptr<QubeInterface> QubeInterface_ptr;

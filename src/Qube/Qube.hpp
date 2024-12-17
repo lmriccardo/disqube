@@ -2,6 +2,7 @@
 #define _QUBE_H
 
 #include <CommonLib/Concurrency/WakeUpTimer.hpp>
+#include <CommonLib/System/Metrics.hpp>
 #include <Qube/StateManager/State.hpp>
 #include <Qube/StateManager/StateMachine.hpp>
 #include <Qube/QubeInterface.hpp>
@@ -64,6 +65,7 @@ namespace Qube
         void operative() override; // The operative state
 
         void processMessage(const Lib::Network::ReceivedData &recvData) override;
+        void handleDiscoverResponse(Lib::Network::ByteBuffer_ptr& buffer);
 
     public:
         QubeManager(const std::string &confFile) : Qube(confFile)
@@ -75,6 +77,8 @@ namespace Qube
     class QubeWorker : public Qube
     {
     private:
+        struct QubeMasterInfo m_QubeMasterInfo;
+
         void discover() override {}; // The discover state (DISCOVERING State of the State Machine)
         void operative() override; // The operative state for the Qube worker
 
@@ -84,6 +88,7 @@ namespace Qube
     public:
         QubeWorker(const std::string &confFile) : Qube(confFile)
         {
+            memset(&m_QubeMasterInfo, 0, sizeof(m_QubeMasterInfo));
             setMasterFlag(false);
         };
     };

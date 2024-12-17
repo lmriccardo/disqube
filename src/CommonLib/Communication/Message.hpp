@@ -134,8 +134,9 @@ namespace Lib::Network
     private:
         unsigned short _udpPort;
         unsigned short _tcpPort;
+        unsigned int _ipaddr;
 
-        static const std::size_t MSG_NUM_BYTES = 4;
+        static const std::size_t MSG_NUM_BYTES = 8;
 
     public:
         DiscoverHelloMessage(const uint16_t id, const uint16_t counter)
@@ -149,9 +150,11 @@ namespace Lib::Network
 
         void setUdpPort(const unsigned short udpPort);
         void setTcpPort(const unsigned short tcpPort);
+        void setIpAddress(const unsigned int ipAddr);
 
         unsigned short getUdpPort() const;
         unsigned short getTcpPort() const;
+        unsigned int getIpAddress() const;
 
         void encode();
         void decode();
@@ -162,11 +165,12 @@ namespace Lib::Network
     private:
         unsigned short _udpPort;
         unsigned short _tcpPort;
-        uint8_t _memory;
-        uint8_t _ncpus;
-        unsigned short _qdim;
+        unsigned int _ipaddr;
+        unsigned int _freeRamMb;
+        unsigned int _freeRamKb;
+        uint8_t _cpuUsage;
 
-        static const std::size_t MSG_NUM_BYTES = 8;
+        static const std::size_t MSG_NUM_BYTES = 20;
 
     public:
         DiscoverResponseMessage(const uint16_t id, const uint16_t counter)
@@ -180,15 +184,18 @@ namespace Lib::Network
 
         void setUdpPort(const unsigned short udpPort);
         void setTcpPort(const unsigned short tcpPort);
-        void setAvailableMemory(const uint8_t memory);
-        void setNumberOfCpus(const uint8_t ncpus);
-        void setTaskQueueDimension(unsigned short qdim);
+        void setIpAddress(const unsigned int ipAddr);
+        void setAvailableMemory_mb(const uint32_t memory_mb);
+        void setAvailableMemory_kb(const uint32_t memory_kb);
+        void setCpuUsage(const uint8_t cpu_usage);
 
         unsigned short getUdpPort() const;
         unsigned short getTcpPort() const;
-        uint8_t getAvailableMemory() const;
-        uint8_t getNumberOfCpus() const;
-        unsigned short getTaskQueueDimension() const;
+        unsigned int getIpAddress() const;
+        uint32_t getAvailableMemory_kb() const;
+        uint32_t getAvailableMemory_mb() const;
+        unsigned long long getAvailableMemory() const;
+        uint8_t getCpuUsage() const;
 
         void encode();
         void decode();

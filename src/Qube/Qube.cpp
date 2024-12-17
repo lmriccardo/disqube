@@ -1,8 +1,9 @@
 #include "Qube.hpp"
 
-namespace sm = Qube::StateManager;
-namespace net = Lib::Network;
+namespace sm   = Qube::StateManager;
+namespace net  = Lib::Network;
 namespace conc = Lib::Concurrency;
+namespace sys  = Lib::System;
 
 unsigned int Qube::Qube::generateId()
 {
@@ -210,7 +211,21 @@ void Qube::Qube::run()
 
 void Qube::QubeManager::discover()
 {
-    this->_itf->qubeDiscovering();
+    this->_itf->qubeDiscovering(); // Perform Qube discovering
+    this->_timer->resetTimeout();  // Reset the timeout for waiting discover responses
+
+    while (!this->_timer->checkTimeout(1000))
+    {
+        this->_timer->wait(); // Wait for the wake up signal
+        MessageIterator it = this->_itf->receiveAllMessage(); // Receives all messages after wake up
+
+        // Process all received messages
+        for (auto message : it)
+        {
+            this->processMessage(message);
+        }
+    }
+
     this->_qubeData.shutdown = true;
     this->_stateMachine->update(this->_qubeData);
 }
@@ -221,6 +236,33 @@ void Qube::QubeManager::operative()
 
 void Qube::QubeManager::processMessage(const net::ReceivedData &recvData)
 {
+    net::ByteBuffer_ptr buffer = recvData.data;
+    struct sockaddr_in *src = recvData.src;
+
+    // Needs to check the message subtype
+    switch (net::Message::fetchMessageSubType(buffer))
+    {
+    case net::Message::MessageSubType::DISCOVER_RESPONSE:
+        handleDiscoverResponse(buffer);
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Qube::QubeManager::handleDiscoverResponse(Lib::Network::ByteBuffer_ptr &buffer)
+{
+    net::DiscoverResponseMessage m_response(*buffer); // Decode the ByteBuffer into the message
+
+    // Take some informations and print them ... for now
+    std::cout << "Received a Reponse from ("
+              << net::Socket::addressNumberToString(m_response.getIpAddress(), false)
+              << ", " << m_response.getUdpPort() << ")"
+              << " With following features: "
+              << "Free RAM: " << m_response.getAvailableMemory() << " KB and "
+              << "CPU Usage: " << static_cast<unsigned int>(m_response.getCpuUsage()) << " %"
+              << std::endl;
 }
 
 void Qube::QubeWorker::operative()
@@ -249,7 +291,6 @@ void Qube::QubeWorker::processMessage(const net::ReceivedData &recvData)
     switch (net::Message::fetchMessageSubType(buffer))
     {
     case net::Message::MessageSubType::DISCOVER_HELLO:
-        /* code */
         handleDiscoverHello(buffer);
         break;
 
@@ -261,6 +302,26 @@ void Qube::QubeWorker::processMessage(const net::ReceivedData &recvData)
 void Qube::QubeWorker::handleDiscoverHello(net::ByteBuffer_ptr &buffer)
 {
     net::DiscoverHelloMessage dhm(*buffer);
-    std::cout << "Tcp Port: " << dhm.getTcpPort() << std::endl;
-    std::cout << "Udp Port: " << dhm.getUdpPort() << std::endl;
+
+    // Take the data contained into the bytebuffer
+    m_QubeMasterInfo.udp_port = dhm.getUdpPort();
+    m_QubeMasterInfo.tcp_port = dhm.getTcpPort();
+    m_QubeMasterInfo.addr = dhm.getIpAddress();
+    
+    // Load the System metrics to put them into the final message
+    struct sys::SystemMetrics metrics;
+    sys::collect(&metrics, 100);
+
+    // Log the reception
+    std::stringstream ss;
+    ss << "Received DISCOVER HELLO Message From ("
+       << net::Socket::addressNumberToString(m_QubeMasterInfo.addr, false)
+       << ", " << m_QubeMasterInfo.udp_port << ") Sending response ... " 
+       << std::endl;
+
+    _logger->info(ss.str());
+
+    // Sends the Discover response message
+    this->_itf->sendDiscoverResponse(&metrics, dhm.getMessageCounter(), 
+        dhm.getMessageId(), &m_QubeMasterInfo);
 }

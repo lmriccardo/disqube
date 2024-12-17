@@ -5,8 +5,14 @@
 namespace cli = Lib::CLI;
 namespace conc = Lib::Concurrency;
 
+Qube::Qube* qube = nullptr;
+
+static void Stop( int );
+
 int main(int argc, const char* argv[])
 {
+    signal(SIGINT, Stop);
+    
     cli::ArgumentParser argparse(argv[0]);
 
     argparse.addBooleanArgument({"verbose", "v", "Enable verbose mode", false}, false);
@@ -20,8 +26,6 @@ int main(int argc, const char* argv[])
 
     conc::AbstractTimerable::prepareSignals();
 
-    Qube::Qube* qube = nullptr;
-
     if (masterFlag)
     {
         qube = new Qube::QubeManager(confFile);
@@ -33,5 +37,17 @@ int main(int argc, const char* argv[])
 
     qube->run();
 
+    Stop(0);
+
     return 0;
+}
+
+void Stop( int )
+{
+    if (qube != nullptr)
+    {
+        delete qube;
+    }
+
+    exit(0);
 }

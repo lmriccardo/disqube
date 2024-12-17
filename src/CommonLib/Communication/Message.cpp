@@ -129,6 +129,11 @@ void DiscoverHelloMessage::setTcpPort(const unsigned short tcpPort)
     _tcpPort = tcpPort;
 }
 
+void DiscoverHelloMessage::setIpAddress(const unsigned int ipAddr)
+{
+    _ipaddr = ipAddr;
+}
+
 unsigned short DiscoverHelloMessage::getUdpPort() const
 {
     return _udpPort;
@@ -139,11 +144,17 @@ unsigned short DiscoverHelloMessage::getTcpPort() const
     return _tcpPort;
 }
 
+unsigned int DiscoverHelloMessage::getIpAddress() const
+{
+    return _ipaddr;
+}
+
 void DiscoverHelloMessage::encode()
 {
     Message::encode_(*this);
     put(_udpPort);
     put(_tcpPort);
+    put(_ipaddr);
 }
 
 void DiscoverHelloMessage::decode()
@@ -151,6 +162,7 @@ void DiscoverHelloMessage::decode()
     Message::decode_(*this);
     setUdpPort(getShort());
     setTcpPort(getShort());
+    setIpAddress(getInt());
 }
 
 void DiscoverResponseMessage::setUdpPort(const unsigned short udpPort)
@@ -163,19 +175,24 @@ void DiscoverResponseMessage::setTcpPort(const unsigned short tcpPort)
     _tcpPort = tcpPort;
 }
 
-void DiscoverResponseMessage::setAvailableMemory(const uint8_t memory)
+void Lib::Network::DiscoverResponseMessage::setIpAddress(const unsigned int ipAddr)
 {
-    _memory = memory;
+    _ipaddr = ipAddr;
 }
 
-void DiscoverResponseMessage::setNumberOfCpus(const uint8_t ncpus)
+void DiscoverResponseMessage::setAvailableMemory_mb(const uint32_t memory_mb)
 {
-    _ncpus = ncpus;
+   _freeRamMb = memory_mb; 
 }
 
-void DiscoverResponseMessage::setTaskQueueDimension(unsigned short qdim)
+void DiscoverResponseMessage::setAvailableMemory_kb(const uint32_t memory_kb)
 {
-    _qdim = qdim;
+    _freeRamKb = memory_kb;
+}
+
+void DiscoverResponseMessage::setCpuUsage(const uint8_t cpu_usage)
+{
+    _cpuUsage = cpu_usage;
 }
 
 unsigned short DiscoverResponseMessage::getUdpPort() const
@@ -183,24 +200,34 @@ unsigned short DiscoverResponseMessage::getUdpPort() const
     return _udpPort;
 }
 
+unsigned int Lib::Network::DiscoverResponseMessage::getIpAddress() const
+{
+    return _ipaddr;
+}
+
 unsigned short DiscoverResponseMessage::getTcpPort() const
 {
     return _tcpPort;
 }
 
-uint8_t DiscoverResponseMessage::getAvailableMemory() const
+uint32_t DiscoverResponseMessage::getAvailableMemory_kb() const
 {
-    return _memory;
+    return _freeRamKb;
 }
 
-uint8_t DiscoverResponseMessage::getNumberOfCpus() const
+uint32_t DiscoverResponseMessage::getAvailableMemory_mb() const
 {
-    return _ncpus;
+    return _freeRamMb;
 }
 
-unsigned short DiscoverResponseMessage::getTaskQueueDimension() const
+unsigned long long DiscoverResponseMessage::getAvailableMemory() const
 {
-    return _qdim;
+    return _freeRamMb * 1000 + _freeRamKb;
+}
+
+uint8_t DiscoverResponseMessage::getCpuUsage() const
+{
+    return _cpuUsage;
 }
 
 void DiscoverResponseMessage::encode()
@@ -208,9 +235,13 @@ void DiscoverResponseMessage::encode()
     Message::encode_(*this);
     put(_udpPort);
     put(_tcpPort);
-    put(_memory);
-    put(_ncpus);
-    put(_qdim);
+    put(_ipaddr);
+    put(_freeRamMb);
+    put(_freeRamKb);
+    put(_cpuUsage);
+    spare();
+    spare();
+    spare();
 }
 
 void DiscoverResponseMessage::decode()
@@ -218,7 +249,9 @@ void DiscoverResponseMessage::decode()
     Message::decode_(*this);
     setUdpPort(getShort());
     setTcpPort(getShort());
-    setAvailableMemory(get());
-    setNumberOfCpus(get());
-    setTaskQueueDimension(getShort());
+    setIpAddress(getInt());
+    setAvailableMemory_mb(getInt());
+    setAvailableMemory_kb(getInt());
+    setCpuUsage(get());
+    position(position() + 3);
 }

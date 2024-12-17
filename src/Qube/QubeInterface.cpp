@@ -1,8 +1,11 @@
 #include "QubeInterface.hpp"
 
 namespace net = Lib::Network;
+namespace sys = Lib::System;
 
-void Qube::QubeMessageReceiver::getFromUdpInterface()
+using namespace Qube;
+
+void QubeMessageReceiver::getFromUdpInterface()
 {
     try
     {
@@ -15,7 +18,7 @@ void Qube::QubeMessageReceiver::getFromUdpInterface()
     }
 }
 
-void Qube::QubeMessageReceiver::getFromTcpInterface()
+void QubeMessageReceiver::getFromTcpInterface()
 {
     try
     {
@@ -28,7 +31,7 @@ void Qube::QubeMessageReceiver::getFromTcpInterface()
     }
 }
 
-void Qube::QubeMessageReceiver::run()
+void QubeMessageReceiver::run()
 {
     while (this->isRunning())
     {
@@ -37,42 +40,42 @@ void Qube::QubeMessageReceiver::run()
     }
 }
 
-bool Qube::QubeMessageReceiver::isRunning() const
+bool QubeMessageReceiver::isRunning() const
 {
     return !this->_sigstop;
 }
 
-void Qube::QubeMessageReceiver::stop()
+void QubeMessageReceiver::stop()
 {
     this->_sigstop = true;
     if (this->isJoinable())
         this->join();
 }
 
-net::ReceivedData Qube::QubeMessageReceiver::getReceivedData()
+net::ReceivedData QubeMessageReceiver::getReceivedData()
 {
     return this->_queue->pop();
 }
 
-const std::size_t Qube::QubeMessageReceiver::getCurrentQueueSize() const
+const std::size_t QubeMessageReceiver::getCurrentQueueSize() const
 {
     return this->_queue->getNofElements();
 }
 
-void Qube::QubeInterface::initUdpInterface(const std::string &ip)
+void QubeInterface::initUdpInterface(const std::string &ip)
 {
     _udpitf = std::make_shared<net::UdpCommunicationInterface>(
         ip, _conf->getUdpSenderPort(), _conf->getUdpListenerPort(), _conf->getUdpMaxCapacityQueue());
 }
 
-void Qube::QubeInterface::initTcpInterface(const std::string &ip)
+void QubeInterface::initTcpInterface(const std::string &ip)
 {
     _tcpitf = std::make_shared<net::TcpCommunicationInterface>(
         ip, _conf->getTcpSenderPort(), _conf->getTcpListenerPort(),
         _conf->getTcpMaxNumOfConnections(), _conf->getTcpMaxCapacityQueue(), 200, 0);
 }
 
-void Qube::QubeInterface::logInit()
+void QubeInterface::logInit()
 {
     // Logging initialization
     _logger->info("Initializing the Qube Interface");
@@ -103,7 +106,7 @@ void Qube::QubeInterface::logInit()
     _logger->info(tcp_ss.str());
 }
 
-void Qube::QubeInterface::init()
+void QubeInterface::init()
 {
     std::string ip = net::Socket::getInterfaceIp(_conf->getNetworkInterface());
     initUdpInterface(ip); // Create Udp Communication Interface
@@ -112,19 +115,16 @@ void Qube::QubeInterface::init()
     // Creates the message receiver with the tcp and udp inteface
     this->_receiver = std::make_shared<QubeMessageReceiver>(_udpitf, _tcpitf);
 
-    // Reserve space for the nodes vector
-    _nodes.reserve(_conf->getMaxNumOfQubes());
-
     // Logging initialization
     logInit();
 }
 
-bool Qube::QubeInterface::isMaster()
+bool QubeInterface::isMaster()
 {
     return _isMaster;
 }
 
-void Qube::QubeInterface::start()
+void QubeInterface::start()
 {
     this->_logger->info("Starting UDP Communication Interface");
     this->_udpitf->start();
@@ -136,7 +136,7 @@ void Qube::QubeInterface::start()
     this->_receiver->start();
 }
 
-void Qube::QubeInterface::stop()
+void QubeInterface::stop()
 {
     this->_logger->info("Shutting down UDP Communication Interface");
     this->_udpitf->close();
@@ -148,7 +148,7 @@ void Qube::QubeInterface::stop()
     this->_receiver->stop();
 }
 
-void Qube::QubeInterface::qubeDiscovering()
+void QubeInterface::qubeDiscovering()
 {
     // Take the subnet configuration of the workers
     std::string subnetAddr = _conf->getQubesSubnetAddress();
@@ -170,6 +170,9 @@ void Qube::QubeInterface::qubeDiscovering()
 
     unsigned short messageId = 0;
 
+    std::string ip = net::Socket::getInterfaceIp(_conf->getNetworkInterface());
+    unsigned int ipaddr = net::Socket::addressStringToNumber(ip);
+
     auto discover_fn = [&](int x)
     {
         if (x == gatewayNum)
@@ -180,6 +183,7 @@ void Qube::QubeInterface::qubeDiscovering()
         net::DiscoverHelloMessage m_discover(messageId++, 0);
         m_discover.setUdpPort(_udpitf->getListenerPort());
         m_discover.setTcpPort(_tcpitf->getListenerPort());
+        m_discover.setIpAddress(ipaddr);
         m_discover.setMessageProtocol(net::Message::MessageProto::UDP);
 
         _udpitf->sendTo(addr_s, workerPort, m_discover);
@@ -189,25 +193,50 @@ void Qube::QubeInterface::qubeDiscovering()
     Logging::ProgressBar::display(info.first, info.last + 1, 1, "Seding Discover Hello Msg", discover_fn);
 }
 
-void Qube::QubeInterface::interfaceDiagnosticCheck()
+void QubeInterface::interfaceDiagnosticCheck()
 {
     // Performs the diagnostic check on both interfaces
     this->_udpitf->performDiagnosticCheck();
     this->_tcpitf->performDiagnosticCheck();
 }
 
-net::DiagnosticCheckResult *Qube::QubeInterface::getUdpDiagnosticResult()
+net::DiagnosticCheckResult *QubeInterface::getUdpDiagnosticResult()
 {
     return this->_udpitf->getDiagnosticResult();
 }
 
-net::DiagnosticCheckResult *Qube::QubeInterface::getTcpDiagnosticResult()
+net::DiagnosticCheckResult *QubeInterface::getTcpDiagnosticResult()
 {
     return this->_tcpitf->getDiagnosticResult();
 }
 
-Qube::MessageIterator Qube::QubeInterface::receiveAllMessage()
+MessageIterator QubeInterface::receiveAllMessage()
 {
     const std::size_t currSize = this->_receiver->getCurrentQueueSize();
-    return Qube::MessageIterator(0, currSize, this->_receiver);
+    return MessageIterator(0, currSize, this->_receiver);
+}
+
+void QubeInterface::sendDiscoverResponse(const sys::SystemMetrics *metrics, 
+    const unsigned short counter, const unsigned short id, 
+    const QubeMasterInfo* master
+) {
+    // Create the Discover Response message
+    net::DiscoverResponseMessage response(id, counter + 1);
+    response.setUdpPort(_udpitf->getListenerPort());
+    response.setTcpPort(_tcpitf->getListenerPort());
+
+    std::string ip = net::Socket::getInterfaceIp(_conf->getNetworkInterface());
+    unsigned int ipaddr = net::Socket::addressStringToNumber(ip);
+    response.setIpAddress(ipaddr);
+    
+    unsigned int ram_mb = metrics->pram_free / (1024 * 1024);
+    unsigned int ram_kb = metrics->pram_free / 1024 - ram_mb * 1000;
+    response.setAvailableMemory_mb(ram_mb);
+    response.setAvailableMemory_kb(ram_kb);
+    response.setCpuUsage(static_cast<unsigned char>(metrics->cpu_usage));
+    response.setMessageProtocol(net::Message::MessageProto::UDP);
+
+    // Sends the message using the UDP socket
+    ip = net::Socket::addressNumberToString(master->addr, false);
+    _udpitf->sendTo(ip, master->udp_port, response);
 }
