@@ -1,5 +1,4 @@
-#ifndef _ARGUMENTPARSER_H
-#define _ARGUMENTPARSER_H
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -75,5 +74,3 @@ namespace Lib::CLI
         ArgumentParser& operator=(const ArgumentParser& other) = delete; // Delete also the operator =
     };
 }
-
-#endif

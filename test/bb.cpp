@@ -2,11 +2,11 @@
 #include <string>
 #include <string.h>
 
-#include <CommonLib/Communication/ByteBuffer.hpp>
+#include <CommonLib/Communication/ByteBufferV2.hpp>
 #include "Test.hpp"
 
-using ByteBuffer = Lib::Network::ByteBuffer;
-using ByteOrder = Lib::Network::ByteBuffer::ByteOrder;
+using ByteBuffer = Lib::Network::ByteBufferV2;
+using ByteOrder = Lib::Network::ByteBufferV2::ByteOrder;
 
 using namespace Test;
 
@@ -28,8 +28,8 @@ void test_values(ByteBuffer& bb)
     bb.position(0);
     assert_eq<unsigned char>(bb.get(), 0);
     assert_eq<unsigned char>(bb.get(), 1);
-    assert_eq<unsigned short>(bb.getShort(), 0x1234);
-    assert_eq<unsigned int>(bb.getInt(), 0x1234abcd);
+    assert_eq<unsigned short>(bb.getUnsignedShort(), 0x1234);
+    assert_eq<unsigned int>(bb.getUnsignedInt(), 0x1234abcd);
 
     char msg[5];
     bb.getBuffer((unsigned char*)msg, 4);

@@ -1,5 +1,4 @@
-#ifndef _CLIARGUMENT_INTERFACE_H
-#define _CLIARGUMENT_INTERFACE_H
+#pragma once
 
 #include <string>
 
@@ -23,5 +22,3 @@ namespace Lib::CLI
         virtual void clean() = 0;
     };
 }
-
-#endif

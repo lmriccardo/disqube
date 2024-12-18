@@ -1,5 +1,4 @@
-#ifndef _ABSTRACT_CLI_ARGUMENT_H
-#define _ABSTRACT_CLI_ARGUMENT_H
+#pragma once
 
 #include <string>
 #include <stdio.h>
@@ -75,5 +74,3 @@ namespace Lib::CLI
         }
     };
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _CLI_ARGUMENTS_H
-#define _CLI_ARGUMENTS_H
+#pragma once
 
 #include <string>
 #include <CommonLib/CLI/TemplateCliArgument.hpp>
@@ -110,5 +109,3 @@ namespace Lib::CLI
         }
     };
 }
-
-#endif
